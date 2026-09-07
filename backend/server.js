@@ -10,46 +10,41 @@ app.use(cors());
 app.use(express.json());
 
 const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SECRET_KEY
 );
 
 app.get("/", (req, res) => {
-    res.json({
-        status: "online",
-        message: "BD Earning API is running"
-    });
+  res.json({
+    status: "online",
+    message: "BD Earning API is running"
+  });
 });
 
 app.get("/api/users", async (req, res) => {
-    try {
-        const { data, error } = await supabase
-            .from("users")
-            .select("*")
-            .limit(10);
+  try {
+    const { data, error } = await supabase
+      .from("users")
+      .select("*")
+      .limit(10);
 
-        if (error) {
-            return res.status(500).json({
-                success: false,
-                error: error.message
-            });
-        }
-
-        res.json({
-            success: true,
-            users: data
-        });
-
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: "Server error"
-        });
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
     }
+
+    res.json({
+      success: true,
+      users: data
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Server error"
+    });
+  }
 });
 
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-    console.log(`BD Earning API running on port ${PORT}`);
-});
+module.exports = app;
