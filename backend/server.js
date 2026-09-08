@@ -75,13 +75,8 @@ function verifyTelegramInitData(initData) {
     return null;
   }
 }
-
-// API status
 app.get("/", (req, res) => {
-  res.json({
-    status: "online",
-    message: "BD Earning API is running"
-  });
+  res.sendFile(__dirname + "/public/index.html");
 });
 
 // Telegram login
