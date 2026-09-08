@@ -15,7 +15,63 @@ const supabase = createClient(
   process.env.SUPABASE_SECRET_KEY
 );
 
-// Health check
+// Telegram initData verification
+function verifyTelegramInitData(initData) {
+  if (!initData || !process.env.TELEGRAM_BOT_TOKEN) {
+    return null;
+  }
+
+  const params = new URLSearchParams(initData);
+  const receivedHash = params.get("hash");
+
+  if (!receivedHash) {
+    return null;
+  }
+
+  params.delete("hash");
+
+  const dataCheckString = [...params.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, value]) => `${key}=${value}`)
+    .join("\n");
+
+  const secretKey = crypto
+    .createHmac("sha256", "WebAppData")
+    .update(process.env.TELEGRAM_BOT_TOKEN)
+    .digest();
+
+  const calculatedHash = crypto
+    .createHmac("sha256", secretKey)
+    .update(dataCheckString)
+    .digest("hex");
+
+  if (calculatedHash.length !== receivedHash.length) {
+    return null;
+  }
+
+  if (
+    !crypto.timingSafeEqual(
+      Buffer.from(calculatedHash),
+      Buffer.from(receivedHash)
+    )
+  ) {
+    return null;
+  }
+
+  const authDate = Number(params.get("auth_date"));
+
+  if (!authDate || Date.now() / 1000 - authDate > 86400) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(params.get("user"));
+  } catch {
+    return null;
+  }
+}
+
+// API status
 app.get("/", (req, res) => {
   res.json({
     status: "online",
@@ -23,80 +79,29 @@ app.get("/", (req, res) => {
   });
 });
 
-// Get users
-app.get("/api/users", async (req, res) => {
+// Telegram login
+app.post("/api/auth", async (req, res) => {
   try {
-    const { data, error } = await supabase
-      .from("users")
-      .select("*")
-      .limit(10);
+    const { initData } = req.body;
 
-    if (error) {
-      return res.status(500).json({
+    const telegramUser = verifyTelegramInitData(initData);
+
+    if (!telegramUser || !telegramUser.id) {
+      return res.status(401).json({
         success: false,
-        error: error.message
+        error: "Invalid Telegram authentication"
       });
     }
 
-    res.json({
-      success: true,
-      users: data
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: "Server error"
-    });
-  }
-});
+    const telegramId = String(telegramUser.id);
+    const username = telegramUser.username || null;
 
-// Create / update Telegram user
-app.post("/api/users", async (req, res) => {
-  try {
-    const {
-      telegram_id,
-      username,
-      referral_code
-    } = req.body;
-
-    if (!telegram_id) {
-      return res.status(400).json({
-        success: false,
-        error: "Telegram ID is required"
-      });
-    }
-
-    const { data: existingUser } = await supabase
+    let { data: user, error } = await supabase
       .from("users")
       .select("*")
-      .eq("telegram_id", String(telegram_id))
+      .eq("telegram_id", telegramId)
       .maybeSingle();
 
-    if (existingUser) {
-      return res.json({
-        success: true,
-        user: existingUser,
-        new_user: false
-      });
-    }
-
-    const userReferralCode =
-      "BD" + String(telegram_id).slice(-8);
-
-    const { data, error } = await supabase
-      .from("users")
-      .insert({
-        telegram_id: String(telegram_id),
-        username: username || null,
-        balance: 0,
-        total_earned: 0,
-        total_withdraw: 0,
-        referral_code: userReferralCode,
-        referred_by: referral_code || null
-      })
-      .select()
-      .single();
-
     if (error) {
       return res.status(500).json({
         success: false,
@@ -104,16 +109,42 @@ app.post("/api/users", async (req, res) => {
       });
     }
 
+    // Create new user
+    if (!user) {
+      const referralCode = "BD" + telegramId.slice(-8);
+
+      const result = await supabase
+        .from("users")
+        .insert({
+          telegram_id: telegramId,
+          username: username,
+          balance: 0,
+          total_earned: 0,
+          total_withdraw: 0,
+          referral_code: referralCode
+        })
+        .select()
+        .single();
+
+      if (result.error) {
+        return res.status(500).json({
+          success: false,
+          error: result.error.message
+        });
+      }
+
+      user = result.data;
+    }
+
     res.json({
       success: true,
-      user: data,
-      new_user: true
+      user: user
     });
 
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: "Server error"
+      error: "Authentication server error"
     });
   }
 });
