@@ -1,1 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BD Earning</title>
 
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            color: #222;
+            padding-bottom: 80px;
+        }
+
+        .header {
+            background: #0088cc;
+            color: white;
+            padding: 22px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 26px;
+        }
+
+        .balance {
+            background: white;
+            margin: 15px;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 3px 12px rgba(0,0,0,.08);
+        }
+
+        .balance h2 {
+            color: #0088cc;
+            margin-top: 8px;
+        }
+
+        .user {
+            margin-top: 8px;
+            font-size: 14px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 15px;
+        }
+
+        .card {
+            background: white;
+            padding: 22px 10px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,.07);
+        }
+
+        .icon {
+            font-size: 30px;
+            margin-bottom: 8px;
+        }
+
+        .card h3 {
+            font-size: 15px;
+        }
+
+        .bottom {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,.1);
+        }
+
+        .bottom button {
+            border: none;
+            background: none;
+            font-size: 13px;
+        }
+
+        #status {
+            text-align: center;
+            padding: 8px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>BD Earning</h1>
+        <p>Work • Earn • Withdraw</p>
+    </div>
+
+    <div class="balance">
+        <p>Your Balance</p>
+        <h2 id="balance">৳ 0.00</h2>
+        <div class="user" id="username">Loading...</div>
+    </div>
+
+    <div id="status">Connecting...</div>
+
+    <div class="grid">
+
+        <div class="card">
+            <div class="icon">💼</div>
+            <h3>Micro Jobs</h3>
+        </div>
+
+        <div class="card">
+            <div class="icon">📺</div>
+            <h3>Watch Ads</h3>
+        </div>
+
+        <div class="card">
+            <div class="icon">📱</div>
+            <h3>SMM Services</h3>
+        </div>
+
+        <div class="card">
+            <div class="icon">👥</div>
+            <h3>Refer & Earn</h3>
+        </div>
+
+        <div class="card">
+            <div class="icon">💰</div>
+            <h3>Withdraw</h3>
+        </div>
+
+        <div class="card">
+            <div class="icon">🛡️</div>
+            <h3>Security</h3>
+        </div>
+
+    </div>
+
+    <div class="bottom">
+        <button>🏠<br>Home</button>
+        <button>💼<br>Tasks</button>
+        <button>💰<br>Wallet</button>
+        <button>👤<br>Profile</button>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+
+        tg.ready();
+        tg.expand();
+
+        async function loginUser() {
+
+            const initData = tg.initData;
+
+            if (!initData) {
+                document.getElementById("status").innerText =
+                    "Open this app from Telegram";
+                return;
+            }
+
+            try {
+
+                const response = await fetch("/api/auth", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        initData: initData
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    document.getElementById("status").innerText =
+                        "Authentication failed";
+                    return;
+                }
+
+                const user = result.user;
+
+                document.getElementById("balance").innerText =
+                    "৳ " + Number(user.balance).toFixed(2);
+
+                document.getElementById("username").innerText =
+                    user.username
+                    ? "@" + user.username
+                    : "Telegram User";
+
+                document.getElementById("status").innerText =
+                    "Account connected ✓";
+
+            } catch (error) {
+
+                console.error(error);
+
+                document.getElementById("status").innerText =
+                    "Connection error";
+            }
+        }
+
+        loginUser();
+    </script>
+
+</body>
+</html>
