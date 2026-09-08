@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BD Earning</title>
 
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
     <style>
         * {
             box-sizing: border-box;
@@ -16,6 +18,7 @@
             font-family: Arial, sans-serif;
             background: #f4f6f8;
             color: #222;
+            padding-bottom: 75px;
         }
 
         .header {
@@ -43,6 +46,11 @@
             margin-top: 8px;
         }
 
+        .user {
+            margin-top: 8px;
+            font-size: 14px;
+        }
+
         .grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -56,6 +64,7 @@
             border-radius: 15px;
             text-align: center;
             box-shadow: 0 3px 10px rgba(0,0,0,.07);
+            cursor: pointer;
         }
 
         .card .icon {
@@ -83,6 +92,13 @@
             border: none;
             background: none;
             font-size: 13px;
+            cursor: pointer;
+        }
+
+        #status {
+            text-align: center;
+            padding: 10px;
+            font-size: 13px;
         }
     </style>
 </head>
@@ -96,8 +112,11 @@
 
     <div class="balance">
         <p>Your Balance</p>
-        <h2>৳ 0.00</h2>
+        <h2 id="balance">৳ 0.00</h2>
+        <div class="user" id="username">Loading...</div>
     </div>
+
+    <div id="status">Connecting...</div>
 
     <div class="grid">
 
@@ -140,5 +159,65 @@
         <button>👤<br>Profile</button>
     </div>
 
+    <script>
+        const tg = window.Telegram.WebApp;
+
+        tg.ready();
+        tg.expand();
+
+        const API_URL = window.location.origin;
+
+        async function loginUser() {
+            try {
+                const initData = tg.initData;
+
+                if (!initData) {
+                    document.getElementById("status").innerText =
+                        "Please open this app from Telegram";
+                    return;
+                }
+
+                const response = await fetch(API_URL + "/api/auth", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        initData: initData
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    document.getElementById("status").innerText =
+                        "Authentication failed";
+                    return;
+                }
+
+                const user = result.user;
+
+                document.getElementById("balance").innerText =
+                    "৳ " + Number(user.balance).toFixed(2);
+
+                document.getElementById("username").innerText =
+                    user.username
+                        ? "@" + user.username
+                        : "Telegram User";
+
+                document.getElementById("status").innerText =
+                    "Account connected ✓";
+
+            } catch (error) {
+                console.error(error);
+
+                document.getElementById("status").innerText =
+                    "Connection error";
+            }
+        }
+
+        loginUser();
+    </script>
+
 </body>
-              </html>
+</html>        
