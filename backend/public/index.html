@@ -870,6 +870,61 @@ function safeUrl(value){
     return "#";
 }
 
+// ===============================
+// DAILY AUTO TIMELINE PHOTO
+// ===============================
+
+async function loadDailyTimelinePhoto(){
+
+    const card =
+        document.getElementById("timelinePhotoCard");
+
+    const image =
+        document.getElementById("dailyTimelineImage");
+
+    const title =
+        document.getElementById("dailyTimelineTitle");
+
+    const description =
+        document.getElementById("dailyTimelineDescription");
+
+    try{
+
+        const response =
+            await fetch("/api/timeline/current");
+
+        const result =
+            await response.json();
+
+        if(
+            !result.success ||
+            !result.post ||
+            !result.post.image_url
+        ){
+
+            return;
+        }
+
+        image.src = safeUrl(result.post.image_url);
+
+        title.textContent =
+            result.post.title || "BD Earning";
+
+        description.textContent =
+            result.post.description || "";
+
+        card.style.display = "block";
+
+    }catch(error){
+
+        console.error(
+            "Daily timeline photo error:",
+            error
+        );
+
+    }
+}
+
 
 // ===============================
 // START
@@ -880,6 +935,9 @@ loginUser();
 loadTasks();
 
 loadAdvertisements();
+
+loadDailyTimelinePhoto();
+
 
 </script>
 
