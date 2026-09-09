@@ -673,6 +673,26 @@ app.get("/api/advertisements", async (req, res) => {
   }
 });
 // ===============================
+// ADMIN AUTHENTICATION
+// ===============================
+
+function verifyAdmin(initData) {
+  const telegramUser = verifyTelegramInitData(initData);
+
+  if (!telegramUser || !telegramUser.id) {
+    return null;
+  }
+
+  if (
+    String(telegramUser.id) !==
+    String(process.env.ADMIN_TELEGRAM_ID)
+  ) {
+    return null;
+  }
+
+  return telegramUser;
+}
+// ===============================
 // ADMIN DAILY PHOTO MANAGEMENT
 // ===============================
 
