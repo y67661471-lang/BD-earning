@@ -75,6 +75,65 @@
             font-size: 15px;
         }
 
+        #status {
+            text-align: center;
+            padding: 8px;
+            font-size: 13px;
+        }
+
+        .tasks-section {
+            padding: 15px;
+        }
+
+        .tasks-title {
+            margin-bottom: 12px;
+            font-size: 21px;
+        }
+
+        .task-card {
+            background: white;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 14px;
+            box-shadow: 0 3px 10px rgba(0,0,0,.07);
+        }
+
+        .task-card h3 {
+            font-size: 17px;
+            margin-bottom: 8px;
+        }
+
+        .task-description {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .reward {
+            font-weight: bold;
+            color: #0088cc;
+            margin-bottom: 12px;
+        }
+
+        .task-button {
+            display: inline-block;
+            padding: 10px 16px;
+            background: #0088cc;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .loading {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            color: #666;
+        }
+
         .bottom {
             position: fixed;
             bottom: 0;
@@ -92,12 +151,6 @@
             background: none;
             font-size: 13px;
         }
-
-        #status {
-            text-align: center;
-            padding: 8px;
-            font-size: 13px;
-        }
     </style>
 </head>
 
@@ -110,7 +163,7 @@
 
     <div class="balance">
         <p>Your Balance</p>
-        <h2 id="balance">৳ 0.00</h2>
+        <h2 id="balance">$ 0.00</h2>
         <div class="user" id="username">Loading...</div>
     </div>
 
@@ -150,6 +203,15 @@
 
     </div>
 
+    <!-- TASKS -->
+    <div class="tasks-section">
+        <h2 class="tasks-title">💼 Available Tasks</h2>
+
+        <div id="tasksList">
+            <div class="loading">Loading tasks...</div>
+        </div>
+    </div>
+
     <div class="bottom">
         <button>🏠<br>Home</button>
         <button>💼<br>Tasks</button>
@@ -158,10 +220,15 @@
     </div>
 
     <script>
+
         const tg = window.Telegram.WebApp;
 
         tg.ready();
         tg.expand();
+
+        // =========================
+        // TELEGRAM LOGIN
+        // =========================
 
         async function loginUser() {
 
@@ -215,7 +282,82 @@
             }
         }
 
+
+        // =========================
+        // LOAD TASKS
+        // =========================
+
+        async function loadTasks() {
+
+            try {
+
+                const response = await fetch("/api/tasks");
+
+                const result = await response.json();
+
+                const tasksList =
+                    document.getElementById("tasksList");
+
+                if (
+                    !result.success ||
+                    !result.tasks ||
+                    result.tasks.length === 0
+                ) {
+
+                    tasksList.innerHTML =
+                        '<div class="loading">No tasks available.</div>';
+
+                    return;
+                }
+
+                tasksList.innerHTML =
+                    result.tasks.map(task => {
+
+                        return `
+                            <div class="task-card">
+
+                                <h3>
+                                    ${task.title}
+                                </h3>
+
+                                <div class="task-description">
+                                    ${task.description || ""}
+                                </div>
+
+                                <div class="reward">
+                                    Reward: ৳${Number(task.reward).toFixed(2)}
+                                </div>
+
+                                <a
+                                    class="task-button"
+                                    href="${task.target_url}"
+                                    target="_blank"
+                                >
+                                    Open Task
+                                </a>
+
+                            </div>
+                        `;
+
+                    }).join("");
+
+            } catch (error) {
+
+                console.error(error);
+
+                document.getElementById("tasksList").innerHTML =
+                    '<div class="loading">Unable to load tasks.</div>';
+            }
+        }
+
+
+        // =========================
+        // START APP
+        // =========================
+
         loginUser();
+        loadTasks();
+
     </script>
 
 </body>
