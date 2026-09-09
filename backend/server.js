@@ -349,5 +349,175 @@ app.get("/api/sub-admin/wallet/:telegramId", async (req, res) => {
     });
   }
 });
+// ===============================
+// SUB ADMIN AD CAMPAIGNS
+// ===============================
 
+// Create campaign
+app.post("/api/sub-admin/campaigns", async (req, res) => {
+  try {
+    const {
+      telegram_id,
+      title,
+      description,
+      ad_url,
+      image_url,
+      payout,
+      daily_budget,
+      total_budget,
+      min_ads,
+      max_ads,
+      repeat_hours
+    } = req.body;
+
+    if (!telegram_id || !title || !ad_url || !payout) {
+      return res.status(400).json({
+        success: false,
+        error: "Required campaign information is missing"
+      });
+    }
+
+    // Find sub-admin
+    const { data: subAdmin, error: adminError } = await supabase
+      .from("sub_admins")
+      .select("*")
+      .eq("telegram_id", String(telegram_id))
+      .maybeSingle();
+
+    if (adminError) {
+      return res.status(500).json({
+        success: false,
+        error: adminError.message
+      });
+    }
+
+    if (!subAdmin) {
+      return res.status(404).json({
+        success: false,
+        error: "Sub-admin not found"
+      });
+    }
+
+    // Basic validation
+    if (Number(payout) <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Payout must be greater than 0"
+      });
+    }
+
+    if (Number(min_ads) < 10) {
+      return res.status(400).json({
+        success: false,
+        error: "Minimum ads must be 10"
+      });
+    }
+
+    if (Number(max_ads) < Number(min_ads)) {
+      return res.status(400).json({
+        success: false,
+        error: "Maximum ads cannot be lower than minimum ads"
+      });
+    }
+
+    if (Number(repeat_hours) < 1) {
+      return res.status(400).json({
+        success: false,
+        error: "Repeat hours must be at least 1"
+      });
+    }
+
+    // Create campaign
+    const { data: campaign, error } = await supabase
+      .from("ad_campaigns")
+      .insert({
+        sub_admin_id: subAdmin.id,
+        title: title,
+        description: description || null,
+        ad_url: ad_url,
+        image_url: image_url || null,
+        payout: Number(payout),
+        daily_budget: Number(daily_budget) || 0,
+        total_budget: Number(total_budget) || 0,
+        spent: 0,
+        min_ads: Number(min_ads) || 10,
+        max_ads: Number(max_ads) || 10,
+        repeat_hours: Number(repeat_hours) || 24,
+        status: "pending"
+      })
+      .select()
+      .single();
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Campaign created successfully",
+      campaign: campaign
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Campaign server error"
+    });
+  }
+});
+
+
+// Get sub-admin campaigns
+app.get("/api/sub-admin/campaigns/:telegramId", async (req, res) => {
+  try {
+    const telegramId = String(req.params.telegramId);
+
+    const { data: subAdmin, error: adminError } = await supabase
+      .from("sub_admins")
+      .select("id")
+      .eq("telegram_id", telegramId)
+      .maybeSingle();
+
+    if (adminError) {
+      return res.status(500).json({
+        success: false,
+        error: adminError.message
+      });
+    }
+
+    if (!subAdmin) {
+      return res.status(404).json({
+        success: false,
+        error: "Sub-admin not found"
+      });
+    }
+
+    const { data: campaigns, error } = await supabase
+      .from("ad_campaigns")
+      .select("*")
+      .eq("sub_admin_id", subAdmin.id)
+      .order("id", { ascending: false });
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+
+    res.json({
+      success: true,
+      campaigns: campaigns
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Campaign server error"
+    });
+  }
+});
 module.exports = app;
