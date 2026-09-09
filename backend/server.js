@@ -672,4 +672,207 @@ app.get("/api/advertisements", async (req, res) => {
     });
   }
 });
+// ===============================
+// ADMIN DAILY PHOTO MANAGEMENT
+// ===============================
+
+function isValidHttpsUrl(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+
+// Create daily timeline photo
+app.post("/api/admin/timeline/create", async (req, res) => {
+  try {
+    const {
+      admin_telegram_id,
+      title,
+      image_url,
+      description,
+      publish_at,
+      expires_at
+    } = req.body;
+
+    // Admin ID check
+    if (
+      !admin_telegram_id ||
+      String(admin_telegram_id) !==
+      String(process.env.ADMIN_TELEGRAM_ID)
+    ) {
+      return res.status(403).json({
+        success: false,
+        error: "Unauthorized admin"
+      });
+    }
+
+    if (!image_url || !isValidHttpsUrl(image_url)) {
+      return res.status(400).json({
+        success: false,
+        error: "Valid HTTPS image URL is required"
+      });
+    }
+
+    const { data, error } = await supabase
+      .from("timeline_posts")
+      .insert({
+        title: title || "BD Earning",
+        image_url: image_url,
+        description: description || "Work • Earn • Withdraw",
+        publish_at: publish_at || new Date().toISOString(),
+        expires_at: expires_at || null,
+        is_active: true
+      })
+      .select()
+      .single();
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+
+    // Admin activity log
+    await supabase
+      .from("timeline_admin_logs")
+      .insert({
+        action: "create",
+        timeline_id: data.id,
+        admin_id: String(admin_telegram_id)
+      });
+
+    res.json({
+      success: true,
+      message: "Daily photo created successfully",
+      post: data
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      error: "Admin photo server error"
+    });
+  }
+});
+
+
+// Get all timeline photos
+app.get("/api/admin/timeline", async (req, res) => {
+  try {
+    const adminTelegramId =
+      String(req.headers["x-admin-telegram-id"] || "");
+
+    if (
+      !adminTelegramId ||
+      adminTelegramId !==
+      String(process.env.ADMIN_TELEGRAM_ID)
+    ) {
+      return res.status(403).json({
+        success: false,
+        error: "Unauthorized admin"
+      });
+    }
+
+    const { data, error } = await supabase
+      .from("timeline_posts")
+      .select("*")
+      .order("id", { ascending: false });
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+
+    res.json({
+      success: true,
+      posts: data
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      error: "Timeline server error"
+    });
+  }
+});
+
+
+// Enable / disable timeline photo
+app.post("/api/admin/timeline/toggle", async (req, res) => {
+  try {
+    const {
+      admin_telegram_id,
+      timeline_id,
+      is_active
+    } = req.body;
+
+    if (
+      !admin_telegram_id ||
+      String(admin_telegram_id) !==
+      String(process.env.ADMIN_TELEGRAM_ID)
+    ) {
+      return res.status(403).json({
+        success: false,
+        error: "Unauthorized admin"
+      });
+    }
+
+    if (!timeline_id) {
+      return res.status(400).json({
+        success: false,
+        error: "Timeline ID is required"
+      });
+    }
+
+    const { data, error } = await supabase
+      .from("timeline_posts")
+      .update({
+        is_active: Boolean(is_active)
+      })
+      .eq("id", Number(timeline_id))
+      .select()
+      .single();
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+
+    await supabase
+      .from("timeline_admin_logs")
+      .insert({
+        action: Boolean(is_active)
+          ? "activate"
+          : "disable",
+        timeline_id: data.id,
+        admin_id: String(admin_telegram_id)
+      });
+
+    res.json({
+      success: true,
+      post: data
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      error: "Timeline update error"
+    });
+  }
+});
 module.exports = app;
