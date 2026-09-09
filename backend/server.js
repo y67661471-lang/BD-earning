@@ -14,6 +14,32 @@ app.use(express.static("public"));
 app.get("/app", (req, res) => {
   res.sendFile(__dirname + "/public/index.html");
 });
+// Get users - testing only
+app.get("/api/users", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("users")
+      .select("*")
+      .limit(10);
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+
+    res.json({
+      success: true,
+      users: data
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Server error"
+    });
+  }
+});
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
