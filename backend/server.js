@@ -520,4 +520,117 @@ app.get("/api/sub-admin/campaigns/:telegramId", async (req, res) => {
     });
   }
 });
+// ===============================
+// ADMIN CAMPAIGN CONTROL
+// ===============================
+
+app.post("/api/admin/campaign/status", async (req, res) => {
+  try {
+    const { campaign_id, status } = req.body;
+
+    const allowedStatuses = [
+      "pending",
+      "active",
+      "paused",
+      "completed",
+      "disabled"
+    ];
+
+    if (!campaign_id || !allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid campaign request"
+      });
+    }
+
+    const { data, error } = await supabase.rpc(
+      "set_campaign_status",
+      {
+        p_campaign_id: Number(campaign_id),
+        p_status: status
+      }
+    );
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+
+    res.json(data);
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Admin server error"
+    });
+  }
+});
+
+
+// Get all campaigns for admin
+app.get("/api/admin/campaigns", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("ad_campaigns")
+      .select(`
+        *,
+        sub_admins (
+          telegram_id,
+          username,
+          status
+        )
+      `)
+      .order("id", { ascending: false });
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+
+    res.json({
+      success: true,
+      campaigns: data
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Admin campaign server error"
+    });
+  }
+});
+
+
+// Get active campaigns for users
+app.get("/api/advertisements", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("ad_campaigns")
+      .select("*")
+      .eq("status", "active")
+      .order("id", { ascending: false });
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+
+    res.json({
+      success: true,
+      advertisements: data
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Advertisement server error"
+    });
+  }
+});
 module.exports = app;
