@@ -137,7 +137,154 @@ app.get("/", (req, res) => {
 app.post("/api/auth", async (req, res) => {
   try {
     const { initData } = req.body;
+// ===============================
+// SUB ADMIN WALLET
+// ===============================
 
+// Create / get sub-admin
+app.post("/api/sub-admin/create", async (req, res) => {
+  try {
+    const { telegram_id, username } = req.body;
+
+    if (!telegram_id) {
+      return res.status(400).json({
+        success: false,
+        error: "Telegram ID is required"
+      });
+    }
+
+    let { data: subAdmin, error } = await supabase
+      .from("sub_admins")
+      .select("*")
+      .eq("telegram_id", String(telegram_id))
+      .maybeSingle();
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+
+    if (!subAdmin) {
+      const result = await supabase
+        .from("sub_admins")
+        .insert({
+          telegram_id: String(telegram_id),
+          username: username || null,
+          status: "active"
+        })
+        .select()
+        .single();
+
+      if (result.error) {
+        return res.status(500).json({
+          success: false,
+          error: result.error.message
+        });
+      }
+
+      subAdmin = result.data;
+
+      // Create wallet
+      const wallet = await supabase
+        .from("sub_admin_wallets")
+        .insert({
+          sub_admin_id: subAdmin.id,
+          balance: 0,
+          total_deposited: 0,
+          total_spent: 0,
+          total_transferred: 0
+        })
+        .select()
+        .single();
+
+      if (wallet.error) {
+        return res.status(500).json({
+          success: false,
+          error: wallet.error.message
+        });
+      }
+    }
+
+    const { data: wallet, error: walletError } = await supabase
+      .from("sub_admin_wallets")
+      .select("*")
+      .eq("sub_admin_id", subAdmin.id)
+      .maybeSingle();
+
+    if (walletError) {
+      return res.status(500).json({
+        success: false,
+        error: walletError.message
+      });
+    }
+
+    res.json({
+      success: true,
+      sub_admin: subAdmin,
+      wallet: wallet
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Sub-admin server error"
+    });
+  }
+});
+
+
+// Get sub-admin wallet
+app.get("/api/sub-admin/wallet/:telegramId", async (req, res) => {
+  try {
+    const telegramId = String(req.params.telegramId);
+
+    const { data: subAdmin, error: adminError } = await supabase
+      .from("sub_admins")
+      .select("*")
+      .eq("telegram_id", telegramId)
+      .maybeSingle();
+
+    if (adminError) {
+      return res.status(500).json({
+        success: false,
+        error: adminError.message
+      });
+    }
+
+    if (!subAdmin) {
+      return res.status(404).json({
+        success: false,
+        error: "Sub-admin not found"
+      });
+    }
+
+    const { data: wallet, error: walletError } = await supabase
+      .from("sub_admin_wallets")
+      .select("*")
+      .eq("sub_admin_id", subAdmin.id)
+      .maybeSingle();
+
+    if (walletError) {
+      return res.status(500).json({
+        success: false,
+        error: walletError.message
+      });
+    }
+
+    res.json({
+      success: true,
+      wallet: wallet
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Wallet server error"
+    });
+  }
+});
     const telegramUser = verifyTelegramInitData(initData);
 
     if (!telegramUser || !telegramUser.id) {
