@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>BD Earning</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:Arial,sans-serif;
+    background:#f3f7fc;
+    color:#14213d;
+    padding-bottom:90px;
+}
+
+.header{
+    background:linear-gradient(135deg,#0879e8,#1554c7);
+    color:white;
+    padding:20px 18px 28px;
+    border-radius:0 0 26px 26px;
+}
+
+.header-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+
+.logo{
+    font-size:25px;
+    font-weight:bold;
+}
+
+.logo span{
+    color:#ffd21f;
+}
+
+.header-sub{
+    margin-top:5px;
+    font-size:13px;
+    opacity:.9;
+}
+
+.header-icon{
+    font-size:23px;
+}
+
+.balance-box{
+    margin:-8px 15px 15px;
+    background:white;
+    border-radius:19px;
+    padding:19px;
+    box-shadow:0 5px 20px rgba(0,0,0,.10);
+}
+
+.balance-title{
+    color:#777;
+    font-size:13px;
+}
+
+.balance{
+    color:#0879e8;
+    font-size:33px;
+    font-weight:bold;
+    margin-top:5px;
+}
+
+.username{
+    margin-top:5px;
+    color:#666;
+    font-size:13px;
+}
+
+.status{
+    text-align:center;
+    font-size:12px;
+    color:#168a45;
+    margin:5px 15px 14px;
+}
+
+.category-scroll{
+    display:flex;
+    overflow-x:auto;
+    gap:10px;
+    padding:5px 15px 17px;
+}
+
+.category-scroll::-webkit-scrollbar{
+    display:none;
+}
+
+.category{
+    min-width:91px;
+    background:white;
+    border-radius:16px;
+    padding:13px 7px;
+    text-align:center;
+    box-shadow:0 3px 10px rgba(0,0,0,.06);
+}
+
+.category-icon{
+    font-size:28px;
+}
+
+.category-name{
+    font-size:11px;
+    margin-top:7px;
+    font-weight:bold;
+}
+
+.section-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:5px 15px 12px;
+}
+
+.section-title{
+    font-size:19px;
+    font-weight:bold;
+}
+
+.view-all{
+    color:#0879e8;
+    font-size:12px;
+}
+
+.list{
+    padding:0 15px;
+}
+
+.card{
+    background:white;
+    border-radius:18px;
+    margin-bottom:14px;
+    overflow:hidden;
+    box-shadow:0 4px 14px rgba(0,0,0,.07);
+}
+
+.banner{
+    height:130px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    color:white;
+    background:linear-gradient(135deg,#0879e8,#153c9e);
+}
+
+.banner.telegram{
+    background:linear-gradient(135deg,#168de2,#1555a8);
+}
+
+.banner.ads{
+    background:linear-gradient(135deg,#ec3d55,#7e1da4);
+}
+
+.banner.watch{
+    background:linear-gradient(135deg,#ff8a00,#e52e71);
+}
+
+.emoji{
+    font-size:58px;
+}
+
+.badge{
+    position:absolute;
+    top:10px;
+    left:10px;
+    background:#24bd50;
+    color:white;
+    padding:6px 10px;
+    border-radius:20px;
+    font-size:10px;
+    font-weight:bold;
+}
+
+.reward{
+    position:absolute;
+    top:10px;
+    right:10px;
+    background:white;
+    color:#078b5d;
+    padding:7px 10px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:bold;
+}
+
+.content{
+    padding:15px;
+}
+
+.title{
+    font-size:17px;
+    font-weight:bold;
+    margin-bottom:7px;
+}
+
+.description{
+    font-size:13px;
+    color:#666;
+    line-height:1.5;
+    margin-bottom:12px;
+}
+
+.meta{
+    font-size:11px;
+    color:#888;
+    margin-bottom:13px;
+}
+
+.button{
+    display:block;
+    width:100%;
+    text-align:center;
+    padding:12px;
+    border-radius:11px;
+    background:#0879e8;
+    color:white;
+    text-decoration:none;
+    border:0;
+    font-size:14px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.button.disabled{
+    background:#b8c0cc;
+}
+
+.empty{
+    background:white;
+    border-radius:16px;
+    padding:25px;
+    text-align:center;
+    color:#777;
+    margin-bottom:15px;
+}
+
+.security{
+    margin:5px 15px 15px;
+    background:white;
+    border-radius:17px;
+    padding:15px;
+    box-shadow:0 3px 12px rgba(0,0,0,.06);
+}
+
+.security-title{
+    font-weight:bold;
+    font-size:14px;
+}
+
+.security-text{
+    margin-top:6px;
+    font-size:12px;
+    color:#168a45;
+}
+
+.bottom-nav{
+    position:fixed;
+    z-index:100;
+    bottom:0;
+    left:0;
+    right:0;
+    background:white;
+    display:flex;
+    justify-content:space-around;
+    padding:9px 4px 10px;
+    box-shadow:0 -4px 15px rgba(0,0,0,.10);
+}
+
+.nav-item{
+    border:0;
+    background:none;
+    color:#777;
+    font-size:10px;
+    text-align:center;
+}
+
+.nav-icon{
+    display:block;
+    font-size:21px;
+    margin-bottom:3px;
+}
+
+.nav-item.active{
+    color:#0879e8;
+    font-weight:bold;
+}
+
+.loading{
+    background:white;
+    border-radius:15px;
+    padding:25px;
+    text-align:center;
+    color:#777;
+    margin-bottom:15px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+
+    <div class="header-top">
+
+        <div>
+            <div class="logo">
+                BD <span>Earning</span>
+            </div>
+
+            <div class="header-sub">
+                Work • Earn • Withdraw
+            </div>
+        </div>
+
+        <div class="header-icon">
+            🔔
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- BALANCE -->
+<div class="balance-box">
+
+    <div class="balance-title">
+        Your Balance
+    </div>
+
+    <div class="balance" id="balance">
+        $0.00
+    </div>
+
+    <div class="username" id="username">
+        Loading...
+    </div>
+
+</div>
+
+
+<!-- STATUS -->
+<div class="status" id="status">
+    Connecting...
+</div>
+
+
+<!-- CATEGORIES -->
+<div class="category-scroll">
+
+    <div class="category">
+        <div class="category-icon">💼</div>
+        <div class="category-name">
+            Micro Jobs
+        </div>
+    </div>
+
+    <div class="category">
+        <div class="category-icon">📺</div>
+        <div class="category-name">
+            Watch Ads
+        </div>
+    </div>
+
+    <div class="category">
+        <div class="category-icon">📢</div>
+        <div class="category-name">
+            Sub-Admin Ads
+        </div>
+    </div>
+
+    <div class="category">
+        <div class="category-icon">👥</div>
+        <div class="category-name">
+            Refer
+        </div>
+    </div>
+
+    <div class="category">
+        <div class="category-icon">💰</div>
+        <div class="category-name">
+            Wallet
+        </div>
+    </div>
+
+    <div class="category">
+        <div class="category-icon">🛡️</div>
+        <div class="category-name">
+            Security
+        </div>
+    </div>
+
+</div>
+
+
+<!-- SECURITY -->
+<div class="security">
+
+    <div class="security-title">
+        🛡️ Account Security
+    </div>
+
+    <div class="security-text">
+        High-security protection is active ✓
+    </div>
+
+</div>
+
+
+<!-- MICRO JOBS -->
+<div class="section-head">
+
+    <div class="section-title">
+        💼 Micro Jobs
+    </div>
+
+    <div class="view-all">
+        View All →
+    </div>
+
+</div>
+
+<div class="list" id="tasksList">
+
+    <div class="loading">
+        Loading tasks...
+    </div>
+
+</div>
+
+
+<!-- SUB ADMIN ADS -->
+<div class="section-head">
+
+    <div class="section-title">
+        📢 Sub-Admin Ads
+    </div>
+
+    <div class="view-all">
+        Active
+    </div>
+
+</div>
+
+<div class="list" id="adsList">
+
+    <div class="loading">
+        Loading advertisements...
+    </div>
+
+</div>
+
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+
+    <button class="nav-item active">
+        <span class="nav-icon">🏠</span>
+        Home
+    </button>
+
+    <button class="nav-item">
+        <span class="nav-icon">💼</span>
+        Tasks
+    </button>
+
+    <button class="nav-item">
+        <span class="nav-icon">🎁</span>
+        Earn
+    </button>
+
+    <button class="nav-item">
+        <span class="nav-icon">💰</span>
+        Wallet
+    </button>
+
+    <button class="nav-item">
+        <span class="nav-icon">👤</span>
+        Profile
+    </button>
+
+</div>
+
+
+<script>
+
+const tg = window.Telegram.WebApp;
+
+tg.ready();
+tg.expand();
+
+
+// ===============================
+// TELEGRAM LOGIN
+// ===============================
+
+async function loginUser(){
+
+    const initData = tg.initData;
+
+    if(!initData){
+
+        document.getElementById("status").innerText =
+            "Open this app from Telegram";
+
+        return;
+    }
+
+    try{
+
+        const response = await fetch("/api/auth",{
+
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify({
+                initData:initData
+            })
+
+        });
+
+        const result = await response.json();
+
+        if(!result.success){
+
+            document.getElementById("status").innerText =
+                "Authentication failed";
+
+            return;
+        }
+
+        const user = result.user;
+
+        document.getElementById("balance").innerText =
+            "$" + Number(user.balance || 0).toFixed(2);
+
+        document.getElementById("username").innerText =
+            user.username
+            ? "@" + user.username
+            : "Telegram User";
+
+        document.getElementById("status").innerText =
+            "Account connected ✓";
+
+    }catch(error){
+
+        console.error(error);
+
+        document.getElementById("status").innerText =
+            "Connection error";
+
+    }
+}
+
+
+// ===============================
+// TASK STYLE
+// ===============================
+
+function getTaskStyle(type){
+
+    type = String(type || "").toLowerCase();
+
+    if(type.includes("telegram")){
+        return {
+            className:"telegram",
+            emoji:"✈️"
+        };
+    }
+
+    if(type.includes("ad")){
+        return {
+            className:"watch",
+            emoji:"📺"
+        };
+    }
+
+    return {
+        className:"",
+        emoji:"💼"
+    };
+}
+
+
+// ===============================
+// LOAD MICRO JOBS
+// ===============================
+
+async function loadTasks(){
+
+    const list =
+        document.getElementById("tasksList");
+
+    try{
+
+        const response =
+            await fetch("/api/tasks");
+
+        const result =
+            await response.json();
+
+        if(
+            !result.success ||
+            !result.tasks ||
+            result.tasks.length === 0
+        ){
+
+            list.innerHTML = `
+                <div class="empty">
+                    No micro jobs available right now.
+                </div>
+            `;
+
+            return;
+        }
+
+        list.innerHTML =
+            result.tasks.map(task => {
+
+                const style =
+                    getTaskStyle(task.task_type);
+
+                return `
+
+                    <div class="card">
+
+                        <div class="banner ${style.className}">
+
+                            <div class="badge">
+                                NEW
+                            </div>
+
+                            <div class="reward">
+                                $${Number(task.reward || 0).toFixed(2)}
+                            </div>
+
+                            <div class="emoji">
+                                ${style.emoji}
+                            </div>
+
+                        </div>
+
+                        <div class="content">
+
+                            <div class="title">
+                                ${escapeHtml(task.title)}
+                            </div>
+
+                            <div class="description">
+                                ${escapeHtml(task.description || "")}
+                            </div>
+
+                            <div class="meta">
+                                💵 Reward • USD
+                            </div>
+
+                            <a
+                                class="button"
+                                href="${safeUrl(task.target_url)}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Start Task →
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            }).join("");
+
+    }catch(error){
+
+        console.error(error);
+
+        list.innerHTML = `
+            <div class="empty">
+                Unable to load micro jobs.
+            </div>
+        `;
+    }
+}
+
+
+// ===============================
+// LOAD SUB ADMIN ADS
+// ===============================
+
+async function loadAdvertisements(){
+
+    const list =
+        document.getElementById("adsList");
+
+    try{
+
+        const response =
+            await fetch("/api/advertisements");
+
+        const result =
+            await response.json();
+
+        if(
+            !result.success ||
+            !result.advertisements ||
+            result.advertisements.length === 0
+        ){
+
+            list.innerHTML = `
+                <div class="empty">
+                    No advertisements available right now.
+                </div>
+            `;
+
+            return;
+        }
+
+        list.innerHTML =
+            result.advertisements.map(ad => {
+
+                return `
+
+                    <div class="card">
+
+                        <div class="banner ads">
+
+                            <div class="badge">
+                                ACTIVE
+                            </div>
+
+                            <div class="reward">
+                                $${Number(ad.payout || 0).toFixed(2)}
+                            </div>
+
+                            <div class="emoji">
+                                📢
+                            </div>
+
+                        </div>
+
+                        <div class="content">
+
+                            <div class="title">
+                                ${escapeHtml(ad.title)}
+                            </div>
+
+                            <div class="description">
+                                ${escapeHtml(ad.description || "Advertisement")}
+                            </div>
+
+                            <div class="meta">
+                                💵 Reward: $${Number(ad.payout || 0).toFixed(2)}
+                                &nbsp; • &nbsp;
+                                ⏱ ${Number(ad.repeat_hours || 24)}h
+                            </div>
+
+                            <a
+                                class="button"
+                                href="${safeUrl(ad.ad_url)}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                View Advertisement →
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            }).join("");
+
+    }catch(error){
+
+        console.error(error);
+
+        list.innerHTML = `
+            <div class="empty">
+                Unable to load advertisements.
+            </div>
+        `;
+    }
+}
+
+
+// ===============================
+// BASIC HTML SAFETY
+// ===============================
+
+function escapeHtml(value){
+
+    return String(value)
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+}
+
+
+function safeUrl(value){
+
+    try{
+
+        const url =
+            new URL(value, window.location.origin);
+
+        if(
+            url.protocol === "http:" ||
+            url.protocol === "https:"
+        ){
+
+            return url.href;
+        }
+
+    }catch(error){}
+
+    return "#";
+}
+
+
+// ===============================
+// START
+// ===============================
+
+loginUser();
+
+loadTasks();
+
+loadAdvertisements();
+
+</script>
+
+</body>
+</html>
