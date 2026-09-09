@@ -1,364 +1,673 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BD Earning</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BD Earning</title>
 
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f8;
-            color: #222;
-            padding-bottom: 80px;
-        }
+body {
+    font-family: Arial, sans-serif;
+    background: #f3f7fc;
+    color: #14213d;
+    padding-bottom: 85px;
+}
 
-        .header {
-            background: #0088cc;
-            color: white;
-            padding: 22px;
-            text-align: center;
-        }
+/* HEADER */
+.header {
+    background: linear-gradient(135deg,#0879e8,#1554c7);
+    color: white;
+    padding: 20px 18px 24px;
+    border-radius: 0 0 25px 25px;
+}
 
-        .header h1 {
-            font-size: 26px;
-        }
+.header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
 
-        .balance {
-            background: white;
-            margin: 15px;
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 3px 12px rgba(0,0,0,.08);
-        }
+.logo {
+    font-size: 25px;
+    font-weight: bold;
+}
 
-        .balance h2 {
-            color: #0088cc;
-            margin-top: 8px;
-        }
+.logo span {
+    color: #ffd21f;
+}
 
-        .user {
-            margin-top: 8px;
-            font-size: 14px;
-        }
+.header-sub {
+    margin-top: 5px;
+    font-size: 13px;
+    opacity: .9;
+}
 
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            padding: 15px;
-        }
+.header-icons {
+    font-size: 22px;
+}
 
-        .card {
-            background: white;
-            padding: 22px 10px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 3px 10px rgba(0,0,0,.07);
-        }
+/* BALANCE */
+.balance-box {
+    margin: -5px 15px 15px;
+    background: white;
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow: 0 5px 20px rgba(0,0,0,.10);
+    position: relative;
+}
 
-        .icon {
-            font-size: 30px;
-            margin-bottom: 8px;
-        }
+.balance-title {
+    color: #777;
+    font-size: 14px;
+}
 
-        .card h3 {
-            font-size: 15px;
-        }
+.balance {
+    color: #0879e8;
+    font-size: 32px;
+    font-weight: bold;
+    margin-top: 5px;
+}
 
-        #status {
-            text-align: center;
-            padding: 8px;
-            font-size: 13px;
-        }
+.username {
+    margin-top: 5px;
+    font-size: 13px;
+    color: #666;
+}
 
-        .tasks-section {
-            padding: 15px;
-        }
+.status {
+    text-align: center;
+    font-size: 12px;
+    color: #168a45;
+    margin: 5px 15px 12px;
+}
 
-        .tasks-title {
-            margin-bottom: 12px;
-            font-size: 21px;
-        }
+/* CATEGORY */
+.category-scroll {
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    padding: 5px 15px 15px;
+}
 
-        .task-card {
-            background: white;
-            padding: 16px;
-            margin-bottom: 12px;
-            border-radius: 14px;
-            box-shadow: 0 3px 10px rgba(0,0,0,.07);
-        }
+.category-scroll::-webkit-scrollbar {
+    display: none;
+}
 
-        .task-card h3 {
-            font-size: 17px;
-            margin-bottom: 8px;
-        }
+.category {
+    min-width: 88px;
+    background: white;
+    border-radius: 15px;
+    padding: 13px 7px;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0,0,0,.06);
+}
 
-        .task-description {
-            color: #666;
-            font-size: 14px;
-            line-height: 1.5;
-            margin-bottom: 10px;
-        }
+.category-icon {
+    font-size: 28px;
+}
 
-        .reward {
-            font-weight: bold;
-            color: #0088cc;
-            margin-bottom: 12px;
-        }
+.category-name {
+    font-size: 11px;
+    margin-top: 7px;
+    font-weight: bold;
+}
 
-        .task-button {
-            display: inline-block;
-            padding: 10px 16px;
-            background: #0088cc;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 14px;
-        }
+/* SECTION TITLE */
+.section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 15px 12px;
+}
 
-        .loading {
-            background: white;
-            padding: 15px;
-            border-radius: 12px;
-            text-align: center;
-            color: #666;
-        }
+.section-title {
+    font-size: 20px;
+}
 
-        .bottom {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            display: flex;
-            justify-content: space-around;
-            padding: 12px;
-            box-shadow: 0 -2px 10px rgba(0,0,0,.1);
-        }
+.view-all {
+    color: #0879e8;
+    font-size: 13px;
+}
 
-        .bottom button {
-            border: none;
-            background: none;
-            font-size: 13px;
-        }
-    </style>
+/* TIMELINE */
+#tasksList {
+    padding: 0 15px;
+}
+
+.task-card {
+    background: white;
+    border-radius: 18px;
+    margin-bottom: 14px;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0,0,0,.07);
+}
+
+.task-banner {
+    height: 145px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background: linear-gradient(135deg,#0879e8,#153c9e);
+    color: white;
+}
+
+.task-banner.telegram {
+    background: linear-gradient(135deg,#168de2,#1555a8);
+}
+
+.task-banner.ads {
+    background: linear-gradient(135deg,#ec3d55,#7e1da4);
+}
+
+.task-banner.smm {
+    background: linear-gradient(135deg,#7c35d9,#e33291);
+}
+
+.task-banner.referral {
+    background: linear-gradient(135deg,#10a86b,#087f9e);
+}
+
+.task-emoji {
+    font-size: 65px;
+}
+
+.badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: #24bd50;
+    color: white;
+    padding: 6px 11px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.reward-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: white;
+    color: #078b5d;
+    padding: 7px 11px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.task-content {
+    padding: 15px;
+}
+
+.task-title {
+    font-size: 17px;
+    margin-bottom: 7px;
+}
+
+.task-description {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+
+.task-meta {
+    display: flex;
+    gap: 15px;
+    font-size: 11px;
+    color: #888;
+    margin-bottom: 13px;
+}
+
+.task-button {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+    border-radius: 10px;
+    background: #0879e8;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* LOADING */
+.loading {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    text-align: center;
+    color: #777;
+}
+
+/* BOTTOM NAV */
+.bottom-nav {
+    position: fixed;
+    z-index: 100;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    display: flex;
+    justify-content: space-around;
+    padding: 9px 4px 10px;
+    box-shadow: 0 -4px 15px rgba(0,0,0,.10);
+}
+
+.nav-item {
+    border: none;
+    background: none;
+    color: #777;
+    font-size: 11px;
+    text-align: center;
+}
+
+.nav-icon {
+    font-size: 22px;
+    display: block;
+    margin-bottom: 3px;
+}
+
+.nav-item.active {
+    color: #0879e8;
+    font-weight: bold;
+}
+
+/* EMPTY */
+.empty {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    text-align: center;
+    color: #777;
+}
+</style>
 </head>
 
 <body>
 
-    <div class="header">
-        <h1>BD Earning</h1>
-        <p>Work • Earn • Withdraw</p>
-    </div>
+<!-- HEADER -->
+<div class="header">
 
-    <div class="balance">
-        <p>Your Balance</p>
-        <h2 id="balance">$ 0.00</h2>
-        <div class="user" id="username">Loading...</div>
-    </div>
+    <div class="header-top">
 
-    <div id="status">Connecting...</div>
+        <div>
+            <div class="logo">
+                BD <span>Earning</span>
+            </div>
 
-    <div class="grid">
-
-        <div class="card">
-            <div class="icon">💼</div>
-            <h3>Micro Jobs</h3>
+            <div class="header-sub">
+                Work • Earn • Withdraw
+            </div>
         </div>
 
-        <div class="card">
-            <div class="icon">📺</div>
-            <h3>Watch Ads</h3>
-        </div>
-
-        <div class="card">
-            <div class="icon">📱</div>
-            <h3>SMM Services</h3>
-        </div>
-
-        <div class="card">
-            <div class="icon">👥</div>
-            <h3>Refer & Earn</h3>
-        </div>
-
-        <div class="card">
-            <div class="icon">💰</div>
-            <h3>Withdraw</h3>
-        </div>
-
-        <div class="card">
-            <div class="icon">🛡️</div>
-            <h3>Security</h3>
+        <div class="header-icons">
+            🔔
         </div>
 
     </div>
 
-    <!-- TASKS -->
-    <div class="tasks-section">
-        <h2 class="tasks-title">💼 Available Tasks</h2>
+</div>
 
-        <div id="tasksList">
-            <div class="loading">Loading tasks...</div>
-        </div>
+
+<!-- BALANCE -->
+<div class="balance-box">
+
+    <div class="balance-title">
+        Your Balance
     </div>
 
-    <div class="bottom">
-        <button>🏠<br>Home</button>
-        <button>💼<br>Tasks</button>
-        <button>💰<br>Wallet</button>
-        <button>👤<br>Profile</button>
+    <div class="balance" id="balance">
+        $0.00
     </div>
 
-    <script>
+    <div class="username" id="username">
+        Loading...
+    </div>
 
-        const tg = window.Telegram.WebApp;
+</div>
 
-        tg.ready();
-        tg.expand();
 
-        // =========================
-        // TELEGRAM LOGIN
-        // =========================
+<div class="status" id="status">
+    Connecting...
+</div>
 
-        async function loginUser() {
 
-            const initData = tg.initData;
+<!-- CATEGORIES -->
+<div class="category-scroll">
 
-            if (!initData) {
-                document.getElementById("status").innerText =
-                    "Open this app from Telegram";
-                return;
-            }
+    <div class="category">
+        <div class="category-icon">💼</div>
+        <div class="category-name">Micro Jobs</div>
+    </div>
 
-            try {
+    <div class="category">
+        <div class="category-icon">📺</div>
+        <div class="category-name">Watch Ads</div>
+    </div>
 
-                const response = await fetch("/api/auth", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        initData: initData
-                    })
-                });
+    <div class="category">
+        <div class="category-icon">📱</div>
+        <div class="category-name">SMM</div>
+    </div>
 
-                const result = await response.json();
+    <div class="category">
+        <div class="category-icon">👥</div>
+        <div class="category-name">Refer</div>
+    </div>
 
-                if (!result.success) {
-                    document.getElementById("status").innerText =
-                        "Authentication failed";
-                    return;
-                }
+    <div class="category">
+        <div class="category-icon">💰</div>
+        <div class="category-name">Wallet</div>
+    </div>
 
-                const user = result.user;
+    <div class="category">
+        <div class="category-icon">🛡️</div>
+        <div class="category-name">Security</div>
+    </div>
 
-                document.getElementById("balance").innerText =
-                    "৳ " + Number(user.balance).toFixed(2);
+</div>
 
-                document.getElementById("username").innerText =
-                    user.username
-                    ? "@" + user.username
-                    : "Telegram User";
 
-                document.getElementById("status").innerText =
-                    "Account connected ✓";
+<!-- TIMELINE TITLE -->
+<div class="section-head">
 
-            } catch (error) {
+    <div class="section-title">
+        📢 Latest Tasks
+    </div>
 
-                console.error(error);
+    <div class="view-all">
+        View All →
+    </div>
 
-                document.getElementById("status").innerText =
-                    "Connection error";
-            }
+</div>
+
+
+<!-- TASK TIMELINE -->
+<div id="tasksList">
+
+    <div class="loading">
+        Loading tasks...
+    </div>
+
+</div>
+
+
+<!-- BOTTOM NAVIGATION -->
+<div class="bottom-nav">
+
+    <button class="nav-item active">
+        <span class="nav-icon">🏠</span>
+        Home
+    </button>
+
+    <button class="nav-item">
+        <span class="nav-icon">💼</span>
+        Tasks
+    </button>
+
+    <button class="nav-item">
+        <span class="nav-icon">🎁</span>
+        Earn
+    </button>
+
+    <button class="nav-item">
+        <span class="nav-icon">💰</span>
+        Wallet
+    </button>
+
+    <button class="nav-item">
+        <span class="nav-icon">👤</span>
+        Profile
+    </button>
+
+</div>
+
+
+<script>
+
+const tg = window.Telegram.WebApp;
+
+tg.ready();
+tg.expand();
+
+
+// ============================
+// TELEGRAM LOGIN
+// ============================
+
+async function loginUser() {
+
+    const initData = tg.initData;
+
+    if (!initData) {
+
+        document.getElementById("status").innerText =
+            "Open this app from Telegram";
+
+        return;
+    }
+
+    try {
+
+        const response = await fetch("/api/auth", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                initData: initData
+            })
+
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+
+            document.getElementById("status").innerText =
+                "Authentication failed";
+
+            return;
+        }
+
+        const user = result.user;
+
+        document.getElementById("balance").innerText =
+            "$" + Number(user.balance).toFixed(2);
+
+        document.getElementById("username").innerText =
+            user.username
+            ? "@" + user.username
+            : "Telegram User";
+
+        document.getElementById("status").innerText =
+            "Account connected ✓";
+
+    } catch (error) {
+
+        console.error(error);
+
+        document.getElementById("status").innerText =
+            "Connection error";
+
+    }
+}
+
+
+// ============================
+// TASK IMAGE STYLE
+// ============================
+
+function getTaskStyle(taskType) {
+
+    const type = String(taskType || "").toLowerCase();
+
+    if (type.includes("telegram")) {
+        return {
+            className: "telegram",
+            emoji: "✈️"
+        };
+    }
+
+    if (type.includes("ad")) {
+        return {
+            className: "ads",
+            emoji: "📺"
+        };
+    }
+
+    if (type.includes("smm")) {
+        return {
+            className: "smm",
+            emoji: "📱"
+        };
+    }
+
+    if (type.includes("refer")) {
+        return {
+            className: "referral",
+            emoji: "👥"
+        };
+    }
+
+    return {
+        className: "",
+        emoji: "💼"
+    };
+}
+
+
+// ============================
+// LOAD TASKS
+// ============================
+
+async function loadTasks() {
+
+    try {
+
+        const response =
+            await fetch("/api/tasks");
+
+        const result =
+            await response.json();
+
+        const tasksList =
+            document.getElementById("tasksList");
+
+
+        if (
+            !result.success ||
+            !result.tasks ||
+            result.tasks.length === 0
+        ) {
+
+            tasksList.innerHTML = `
+                <div class="empty">
+                    No tasks available right now.
+                </div>
+            `;
+
+            return;
         }
 
 
-        // =========================
-        // LOAD TASKS
-        // =========================
+        tasksList.innerHTML =
+            result.tasks.map(task => {
 
-        async function loadTasks() {
+                const style =
+                    getTaskStyle(task.task_type);
 
-            try {
+                return `
 
-                const response = await fetch("/api/tasks");
+                    <div class="task-card">
 
-                const result = await response.json();
+                        <div class="task-banner ${style.className}">
 
-                const tasksList =
-                    document.getElementById("tasksList");
-
-                if (
-                    !result.success ||
-                    !result.tasks ||
-                    result.tasks.length === 0
-                ) {
-
-                    tasksList.innerHTML =
-                        '<div class="loading">No tasks available.</div>';
-
-                    return;
-                }
-
-                tasksList.innerHTML =
-                    result.tasks.map(task => {
-
-                        return `
-                            <div class="task-card">
-
-                                <h3>
-                                    ${task.title}
-                                </h3>
-
-                                <div class="task-description">
-                                    ${task.description || ""}
-                                </div>
-
-                                <div class="reward">
-                                    Reward: ৳${Number(task.reward).toFixed(2)}
-                                </div>
-
-                                <a
-                                    class="task-button"
-                                    href="${task.target_url}"
-                                    target="_blank"
-                                >
-                                    Open Task
-                                </a>
-
+                            <div class="badge">
+                                NEW
                             </div>
-                        `;
 
-                    }).join("");
+                            <div class="reward-badge">
+                                $${Number(task.reward).toFixed(2)}
+                            </div>
 
-            } catch (error) {
+                            <div class="task-emoji">
+                                ${style.emoji}
+                            </div>
 
-                console.error(error);
-
-                document.getElementById("tasksList").innerHTML =
-                    '<div class="loading">Unable to load tasks.</div>';
-            }
-        }
+                        </div>
 
 
-        // =========================
-        // START APP
-        // =========================
+                        <div class="task-content">
 
-        loginUser();
-        loadTasks();
+                            <div class="task-title">
+                                ${task.title}
+                            </div>
 
-    </script>
+                            <div class="task-description">
+                                ${task.description || ""}
+                            </div>
+
+                            <div class="task-meta">
+                                <span>👁 1.2K</span>
+                                <span>❤️ 245</span>
+                                <span>🕒 New</span>
+                            </div>
+
+                            <a
+                                class="task-button"
+                                href="${task.target_url}"
+                                target="_blank"
+                                rel="noopener"
+                            >
+                                Start Task →
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            }).join("");
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        document.getElementById("tasksList").innerHTML = `
+            <div class="empty">
+                Unable to load tasks.
+            </div>
+        `;
+
+    }
+}
+
+
+// ============================
+// START
+// ============================
+
+loginUser();
+loadTasks();
+
+</script>
 
 </body>
 </html>
