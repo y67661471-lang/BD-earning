@@ -9,6 +9,45 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+// ===============================
+// DAILY AUTO TIMELINE PHOTO
+// ===============================
+app.get("/api/timeline/current", async (req, res) => {
+  try {
+    const now = new Date().toISOString();
+
+    const { data, error } = await supabase
+      .from("timeline_posts")
+      .select("*")
+      .eq("is_active", true)
+      .lte("publish_at", now)
+      .or(`expires_at.is.null,expires_at.gt.${now}`)
+      .order("publish_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Timeline error:", error);
+      return res.status(500).json({
+        success: false,
+        error: "Failed to load timeline"
+      });
+    }
+
+    res.json({
+      success: true,
+      post: data || null
+    });
+
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).json({
+      success: false,
+      error: "Server error"
+    });
+  }
+});
 app.use(express.static("public"));
 
 app.get("/app", (req, res) => {
