@@ -45,6 +45,34 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SECRET_KEY
 );
+// Get active tasks
+app.get("/api/tasks", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("tasks")
+      .select("*")
+      .eq("is_active", true)
+      .order("id", { ascending: false });
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+
+    res.json({
+      success: true,
+      tasks: data
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Server error"
+    });
+  }
+});
 
 // Telegram initData verification
 function verifyTelegramInitData(initData) {
