@@ -924,5 +924,55 @@ app.post("/api/admin/timeline/toggle", async (req, res) => {
 // =====================================================
 // START
 // =====================================================
+// ===============================
+// ADMIN USER MANAGEMENT
+// ===============================
 
+app.get("/api/admin/users", async (req, res) => {
+  try {
+    const initData = req.headers["x-telegram-init-data"];
+
+    if (!verifyAdmin(initData)) {
+      return res.status(403).json({
+        success: false,
+        error: "Unauthorized"
+      });
+    }
+
+    const { data, error } = await supabase
+      .from("users")
+      .select(`
+        id,
+        telegram_id,
+        username,
+        balance,
+        total_earned,
+        total_withdraw,
+        referral_code,
+        referred_by,
+        is_blocked,
+        security_score,
+        created_at
+      `)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+
+    return res.json({
+      success: true,
+      users: data || []
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: "Server error"
+    });
+  }
+});
 module.exports = app;
