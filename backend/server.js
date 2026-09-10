@@ -1146,6 +1146,182 @@ app.post("/api/admin/withdrawals/process", async (req, res) => {
 // ===============================
 
 app.post("/api/withdraw", async (req, res) => {
+  // ===============================
+// SECURE USER WITHDRAWAL REQUEST
+// ===============================
+
+app.post("/api/withdraw", async (req, res) => {
+  try {
+    const initData = req.headers["x-telegram-init-data"];
+
+    // Verify Telegram WebApp data
+    if (!verifyTelegramInitData(initData)) {
+      return res.status(403).json({
+        success: false,
+        error: "Invalid Telegram authentication"
+      });
+    }
+
+    const params = new URLSearchParams(initData);
+    const userJson = params.get("user");
+
+    if (!userJson) {
+      return res.status(403).json({
+        success: false,
+        error: "Telegram user data missing"
+      });
+    }
+
+    let telegramUser;
+
+    try {
+      telegramUser = JSON.parse(userJson);
+    } catch {
+      return res.status(403).json({
+        success: false,
+        error: "Invalid Telegram user data"
+      });
+    }
+
+    const telegramId = String(telegramUser.id);
+
+    const {
+      amount,
+      method,
+      account_number
+    } = req.body;
+
+    if (!amount || !method || !account_number) {
+      return res.status(400).json({
+        success: false,
+        error: "All fields are required"
+      });
+    }
+
+    const withdrawAmount = Number(amount);
+
+    if (!Number.isFinite(withdrawAmount) ||
+        withdrawAmount <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid amount"
+      });
+    }
+
+    if (withdrawAmount < 5) {
+      return res.status(400).json({
+        success: false,
+        error: "Minimum withdrawal is $5"
+      });
+    }
+
+    const allowedMethods = [
+      "bKash",
+      "Nagad",
+      "Bank"
+    ];
+
+    if (!allowedMethods.includes(method)) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid payment method"
+      });
+    }
+
+    const cleanAccount =
+      String(account_number).trim();
+
+    if (cleanAccount.length < 5 ||
+        cleanAccount.length > 50) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid account number"
+      });
+    }
+
+    // Get user
+    const { data: user, error: userError } =
+      await supabase
+        .from("users")
+        .select(
+          "telegram_id, balance, is_blocked"
+        )
+        .eq("telegram_id", telegramId)
+        .single();
+
+    if (userError || !user) {
+      return res.status(404).json({
+        success: false,
+        error: "User not found"
+      });
+    }
+
+    if (user.is_blocked) {
+      return res.status(403).json({
+        success: false,
+        error: "Account is blocked"
+      });
+    }
+
+    if (Number(user.balance) < withdrawAmount) {
+      return res.status(400).json({
+        success: false,
+        error: "Insufficient balance"
+      });
+    }
+
+    // Only one pending withdrawal at a time
+    const { data: pending } =
+      await supabase
+        .from("withdrawals")
+        .select("id")
+        .eq("telegram_id", telegramId)
+        .eq("status", "pending")
+        .limit(1);
+
+    if (pending && pending.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: "You already have a pending withdrawal"
+      });
+    }
+
+    const { data, error } =
+      await supabase
+        .from("withdrawals")
+        .insert({
+          telegram_id: telegramId,
+          amount: withdrawAmount,
+          method: method,
+          account_number: cleanAccount,
+          status: "pending"
+        })
+        .select()
+        .single();
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: "Withdrawal request submitted",
+      withdrawal: data
+    });
+
+  } catch (error) {
+
+    console.error("Withdrawal error:", error);
+
+    return res.status(500).json({
+      success: false,
+      error: "Server error"
+    });
+  }
+});
   try {
     const { telegram_id, amount, method, account_number } = req.body;
 
