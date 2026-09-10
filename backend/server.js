@@ -1141,4 +1141,111 @@ app.post("/api/admin/withdrawals/process", async (req, res) => {
     });
   }
 });
+// ===============================
+// USER WITHDRAWAL REQUEST
+// ===============================
+
+app.post("/api/withdraw", async (req, res) => {
+  try {
+    const { telegram_id, amount, method, account_number } = req.body;
+
+    if (!telegram_id || !amount || !method || !account_number) {
+      return res.status(400).json({
+        success: false,
+        error: "All fields are required"
+      });
+    }
+
+    const withdrawAmount = Number(amount);
+
+    if (!Number.isFinite(withdrawAmount) || withdrawAmount <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid amount"
+      });
+    }
+
+    // Minimum withdrawal
+    if (withdrawAmount < 5) {
+      return res.status(400).json({
+        success: false,
+        error: "Minimum withdrawal is $5"
+      });
+    }
+
+    // Find user
+    const { data: user, error: userError } = await supabase
+      .from("users")
+      .select("telegram_id, balance, is_blocked")
+      .eq("telegram_id", telegram_id)
+      .single();
+
+    if (userError || !user) {
+      return res.status(404).json({
+        success: false,
+        error: "User not found"
+      });
+    }
+
+    if (user.is_blocked) {
+      return res.status(403).json({
+        success: false,
+        error: "Account is blocked"
+      });
+    }
+
+    if (Number(user.balance) < withdrawAmount) {
+      return res.status(400).json({
+        success: false,
+        error: "Insufficient balance"
+      });
+    }
+
+    // Prevent multiple pending withdrawals
+    const { data: pending } = await supabase
+      .from("withdrawals")
+      .select("id")
+      .eq("telegram_id", telegram_id)
+      .eq("status", "pending")
+      .limit(1);
+
+    if (pending && pending.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: "You already have a pending withdrawal"
+      });
+    }
+
+    const { data, error } = await supabase
+      .from("withdrawals")
+      .insert({
+        telegram_id,
+        amount: withdrawAmount,
+        method,
+        account_number,
+        status: "pending"
+      })
+      .select()
+      .single();
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: "Withdrawal request submitted",
+      withdrawal: data
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: "Server error"
+    });
+  }
+});
 module.exports = app;
