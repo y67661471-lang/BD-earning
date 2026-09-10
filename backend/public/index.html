@@ -352,7 +352,7 @@ body{
     <option value="">Select payment method</option>
     <option value="bKash">bKash</option>
     <option value="Nagad">Nagad</option>
-    <option value="Binance">Binance</option>
+    <option value="Bank">Binance</option>
   </select>
 
   <input
@@ -1040,85 +1040,128 @@ loadAdvertisements();
 
 loadDailyTimelinePhoto();
 
+// ===============================
+// SECURE USER WITHDRAWAL
+// ===============================
+
 async function submitWithdrawal() {
-  const amount =
-    document.getElementById("withdrawAmount").value;
 
-  const method =
-    document.getElementById("withdrawMethod").value;
+    const amount =
+        document.getElementById("withdrawAmount").value.trim();
 
-  const account =
-    document.getElementById("withdrawAccount").value.trim();
+    const method =
+        document.getElementById("withdrawMethod").value;
 
-  const message =
-    document.getElementById("withdrawMessage");
+    const account =
+        document.getElementById("withdrawAccount").value.trim();
 
-  const telegramId =
-    window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+    const message =
+        document.getElementById("withdrawMessage");
 
-  if (!telegramId) {
-    message.innerHTML =
-      "❌ Please open the Mini App from Telegram.";
-    return;
-  }
+    // Get Telegram WebApp
+    const telegramWebApp =
+        window.Telegram?.WebApp;
 
-  if (!amount || Number(amount) < 5) {
-    message.innerHTML =
-      "❌ Minimum withdrawal is $5.";
-    return;
-  }
+    if (!telegramWebApp || !telegramWebApp.initData) {
 
-  if (!method) {
-    message.innerHTML =
-      "❌ Please select a payment method.";
-    return;
-  }
+        message.innerHTML =
+            "❌ Please open BD Earning from Telegram.";
 
-  if (!account) {
-    message.innerHTML =
-      "❌ Please enter your account number.";
-    return;
-  }
-
-  try {
-    message.innerHTML = "⏳ Submitting...";
-
-    const response = await fetch("/api/withdraw", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        telegram_id: String(telegramId),
-        amount: Number(amount),
-        method: method,
-        account_number: account
-      })
-    });
-
-    const result = await response.json();
-
-    if (!result.success) {
-      message.innerHTML =
-        "❌ " + (result.error || "Withdrawal failed");
-      return;
+        return;
     }
 
-    message.innerHTML =
-      "✅ Withdrawal request submitted successfully.";
+    // Validate amount
+    if (!amount || Number(amount) < 5) {
 
-    document.getElementById("withdrawAmount").value = "";
-    document.getElementById("withdrawMethod").value = "";
-    document.getElementById("withdrawAccount").value = "";
+        message.innerHTML =
+            "❌ Minimum withdrawal is $5.";
 
-  } catch (error) {
-    console.error(error);
+        return;
+    }
 
-    message.innerHTML =
-      "❌ Server error. Please try again.";
-  }
+    // Validate payment method
+    if (!method) {
+
+        message.innerHTML =
+            "❌ Please select a payment method.";
+
+        return;
+    }
+
+    // Validate account
+    if (!account) {
+
+        message.innerHTML =
+            "❌ Please enter your account number.";
+
+        return;
+    }
+
+    try {
+
+        message.innerHTML =
+            "⏳ Security checking...";
+
+        const response =
+            await fetch("/api/withdraw", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json",
+
+                    "x-telegram-init-data":
+                        telegramWebApp.initData
+                },
+
+                body: JSON.stringify({
+
+                    amount: Number(amount),
+
+                    method: method,
+
+                    account_number: account
+
+                })
+
+            });
+
+        const result =
+            await response.json();
+
+        if (!response.ok || !result.success) {
+
+            message.innerHTML =
+                "❌ " +
+                (result.error ||
+                "Withdrawal request failed.");
+
+            return;
+        }
+
+        message.innerHTML =
+            "✅ Withdrawal request submitted successfully.";
+
+        document.getElementById(
+            "withdrawAmount"
+        ).value = "";
+
+        document.getElementById(
+            "withdrawAccount"
+        ).value = "";
+
+    } catch (error) {
+
+        console.error(
+            "Withdrawal error:",
+            error
+        );
+
+        message.innerHTML =
+            "❌ Server connection error.";
+    }
 }
-</script>
+
 
 </body>
 </html>
