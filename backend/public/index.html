@@ -985,23 +985,27 @@ async function submitWithdrawal() {
 
     try {
 
-        const response = await fetch("/api/withdraw", {
+        const tg = window.Telegram?.WebApp;
 
-            method: "POST",
+if (!tg || !tg.initData) {
+  alert("Please open BD Earning from Telegram.");
+  return;
+}
 
-            headers: {
-                "Content-Type": "application/json",
-                "x-telegram-init-data": initData
-            },
+const response = await fetch(API + "/api/withdraw", {
+  method: "POST",
 
-            body: JSON.stringify({
-                amount: Number(amount),
-                method: method,
-                account_number: account
-            })
+  headers: {
+    "Content-Type": "application/json",
+    "x-telegram-init-data": tg.initData
+  },
 
-        });
-
+  body: JSON.stringify({
+    amount,
+    method,
+    account_number
+  })
+});
         const result = await response.json();
 
         if (!response.ok || !result.success) {
