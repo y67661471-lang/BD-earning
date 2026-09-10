@@ -1,1 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BD Earning - Admin Panel</title>
 
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #f4f6f9;
+      color: #222;
+    }
+
+    .header {
+      background: #111827;
+      color: white;
+      padding: 18px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 22px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    .login-box,
+    .panel {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 3px 15px rgba(0,0,0,.08);
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 8px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover {
+      opacity: .9;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 3px 12px rgba(0,0,0,.07);
+    }
+
+    .card h3 {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+
+    .card strong {
+      font-size: 24px;
+    }
+
+    .menu {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .menu button {
+      background: #374151;
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .danger {
+      background: #dc2626;
+    }
+
+    .success {
+      background: #16a34a;
+    }
+
+    .warning {
+      background: #d97706;
+    }
+
+    .item {
+      border: 1px solid #e5e7eb;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+
+    .item button {
+      width: auto;
+      padding: 8px 12px;
+      margin-right: 5px;
+    }
+
+    .status {
+      padding: 5px 9px;
+      border-radius: 6px;
+      background: #e5e7eb;
+      font-size: 12px;
+    }
+
+    .message {
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      background: #eef2ff;
+    }
+
+    @media(max-width:600px) {
+      .container {
+        padding: 10px;
+      }
+
+      .card strong {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="header">
+  <h1>BD Earning Admin Panel</h1>
+  <p>Secure Management Dashboard</p>
+</div>
+
+<div class="container">
+
+  <!-- ADMIN LOGIN -->
+  <div id="loginBox" class="login-box">
+    <h2>Admin Authentication</h2>
+
+    <p style="margin:10px 0;color:#666;">
+      Enter your Telegram Init Data to access the protected admin API.
+    </p>
+
+    <textarea id="initData" rows="4"
+      placeholder="Paste Telegram initData here"></textarea>
+
+    <button onclick="loginAdmin()">Login to Admin Panel</button>
+
+    <div id="loginMessage"></div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboardArea" style="display:none;">
+
+    <div class="dashboard">
+
+      <div class="card">
+        <h3>Total Users</h3>
+        <strong id="totalUsers">0</strong>
+      </div>
+
+      <div class="card">
+        <h3>Active Campaigns</h3>
+        <strong id="activeCampaigns">0</strong>
+      </div>
+
+      <div class="card">
+        <h3>Pending Campaigns</h3>
+        <strong id="pendingCampaigns">0</strong>
+      </div>
+
+      <div class="card">
+        <h3>Timeline Posts</h3>
+        <strong id="timelineCount">0</strong>
+      </div>
+
+    </div>
+
+    <!-- MENU -->
+    <div class="menu">
+      <button onclick="showSection('users')">Users</button>
+      <button onclick="showSection('campaigns')">Campaigns</button>
+      <button onclick="showSection('timeline')">Daily Timeline</button>
+      <button onclick="showSection('security')">Security</button>
+      <button onclick="showSection('withdrawals')">Withdrawals</button>
+    </div>
+
+    <!-- USERS -->
+    <div id="users" class="section active">
+
+      <div class="panel">
+        <h2>User Management</h2>
+        <br>
+
+        <button onclick="loadUsers()">Refresh Users</button>
+
+        <div id="usersList">
+          Loading...
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CAMPAIGNS -->
+    <div id="campaigns" class="section">
+
+      <div class="panel">
+        <h2>Advertisement Campaigns</h2>
+        <br>
+
+        <button onclick="loadCampaigns()">Refresh Campaigns</button>
+
+        <div id="campaignsList">
+          Loading...
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TIMELINE -->
+    <div id="timeline" class="section">
+
+      <div class="panel">
+
+        <h2>Daily Timeline / Photo</h2>
+
+        <p style="margin:10px 0;color:#666;">
+          Create and manage the daily promotional image shown in the Mini App.
+        </p>
+
+        <input id="timelineTitle"
+          placeholder="Timeline title">
+
+        <input id="timelineImage"
+          placeholder="Public image URL">
+
+        <textarea id="timelineDescription"
+          placeholder="Description"></textarea>
+
+        <input id="timelinePublish"
+          type="datetime-local">
+
+        <input id="timelineExpire"
+          type="datetime-local">
+
+        <button onclick="createTimeline()">
+          Create Timeline Post
+        </button>
+
+        <hr style="margin:20px 0;">
+
+        <button onclick="loadTimeline()">
+          Refresh Timeline
+        </button>
+
+        <div id="timelineList">
+          Loading...
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- SECURITY -->
+    <div id="security" class="section">
+
+      <div class="panel">
+
+        <h2>AI / Robotic Security</h2>
+
+        <br>
+
+        <div class="item">
+          <b>Duplicate Account Detection</b>
+          <p>Monitor repeated Telegram identities and suspicious account patterns.</p>
+        </div>
+
+        <div class="item">
+          <b>Rate Limit Protection</b>
+          <p>Detect unusually fast repeated actions.</p>
+        </div>
+
+        <div class="item">
+          <b>Risk Score</b>
+          <p>Users can be assigned a security risk score for manual review.</p>
+        </div>
+
+        <div class="item">
+          <b>Reward Protection</b>
+          <p>Suspicious rewards should remain pending until verification.</p>
+        </div>
+
+        <div class="item">
+          <b>Audit Logs</b>
+          <p>Administrative actions should be recorded for accountability.</p>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- WITHDRAWALS -->
+    <div id="withdrawals" class="section">
+
+      <div class="panel">
+
+        <h2>Withdrawal Management</h2>
+
+        <p style="margin-top:10px;color:#666;">
+          Withdrawal management API/UI will be connected in the next step.
+        </p>
+
+        <div class="message">
+          Pending withdrawals should be reviewed before approval.
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+
+const API = window.location.origin;
+
+let ADMIN_INIT_DATA = "";
+
+function showSection(id) {
+
+  document.querySelectorAll(".section")
+    .forEach(section => {
+      section.classList.remove("active");
+    });
+
+  document.getElementById(id)
+    .classList.add("active");
+}
+
+
+function loginAdmin() {
+
+  const initData =
+    document.getElementById("initData").value.trim();
+
+  if (!initData) {
+
+    document.getElementById("loginMessage").innerHTML =
+      "<div class='message'>Please enter Telegram initData.</div>";
+
+    return;
+  }
+
+  ADMIN_INIT_DATA = initData;
+
+  document.getElementById("loginBox").style.display = "none";
+  document.getElementById("dashboardArea").style.display = "block";
+
+  loadDashboard();
+  loadUsers();
+  loadCampaigns();
+  loadTimeline();
+}
+
+
+async function loadDashboard() {
+
+  try {
+
+    const usersResponse =
+      await fetch(API + "/api/users");
+
+    const usersData =
+      await usersResponse.json();
+
+    if (Array.isArray(usersData)) {
+      document.getElementById("totalUsers").textContent =
+        usersData.length;
+    }
+
+    const campaignResponse =
+      await fetch(API + "/api/admin/campaigns", {
+        headers: {
+          "x-telegram-init-data": ADMIN_INIT_DATA
+        }
+      });
+
+    const campaignData =
+      await campaignResponse.json();
+
+    if (Array.isArray(campaignData.campaigns)) {
+
+      const campaigns =
+        campaignData.campaigns;
+
+      document.getElementById("activeCampaigns").textContent =
+        campaigns.filter(x => x.status === "active").length;
+
+      document.getElementById("pendingCampaigns").textContent =
+        campaigns.filter(x => x.status === "pending").length;
+    }
+
+  } catch (error) {
+
+    console.error(error);
+
+  }
+}
+
+
+async function loadUsers() {
+
+  const box =
+    document.getElementById("usersList");
+
+  box.innerHTML = "Loading users...";
+
+  try {
+
+    const response =
+      await fetch(API + "/api/users");
+
+    const users =
+      await response.json();
+
+    if (!Array.isArray(users) || users.length === 0) {
+
+      box.innerHTML =
+        "<div class='message'>No users found.</div>";
+
+      return;
+    }
+
+    box.innerHTML =
+      users.map(user => `
+
+        <div class="item">
+
+          <b>
+            ${escapeHtml(user.username || "No username")}
+          </b>
+
+          <p>Telegram ID:
+            ${escapeHtml(user.telegram_id || "")}
+          </p>
+
+          <p>Balance:
+            $${Number(user.balance || 0).toFixed(2)}
+          </p>
+
+          <p>Security Score:
+            ${user.security_score ?? 100}
+          </p>
+
+          <p>
+            Status:
+            <span class="status">
+              ${user.is_blocked ? "Blocked" : "Active"}
+            </span>
+          </p>
+
+        </div>
+
+      `).join("");
+
+  } catch(error) {
+
+    box.innerHTML =
+      "<div class='message'>Failed to load users.</div>";
+
+  }
+}
+
+
+async function loadCampaigns() {
+
+  const box =
+    document.getElementById("campaignsList");
+
+  box.innerHTML = "Loading campaigns...";
+
+  try {
+
+    const response =
+      await fetch(API + "/api/admin/campaigns", {
+        headers: {
+          "x-telegram-init-data": ADMIN_INIT_DATA
+        }
+      });
+
+    const data =
+      await response.json();
+
+    const campaigns =
+      data.campaigns || [];
+
+    if (campaigns.length === 0) {
+
+      box.innerHTML =
+        "<div class='message'>No campaigns found.</div>";
+
+      return;
+    }
+
+    box.innerHTML =
+      campaigns.map(campaign => `
+
+        <div class="item">
+
+          <h3>
+            ${escapeHtml(campaign.title)}
+          </h3>
+
+          <p>
+            Reward:
+            $${Number(campaign.payout || 0).toFixed(2)}
+          </p>
+
+          <p>
+            Status:
+            <span class="status">
+              ${escapeHtml(campaign.status)}
+            </span>
+          </p>
+
+          <br>
+
+          <button class="success"
+            onclick="changeCampaignStatus(${campaign.id}, 'active')">
+            Activate
+          </button>
+
+          <button class="warning"
+            onclick="changeCampaignStatus(${campaign.id}, 'paused')">
+            Pause
+          </button>
+
+          <button class="danger"
+            onclick="changeCampaignStatus(${campaign.id}, 'disabled')">
+            Disable
+          </button>
+
+        </div>
+
+      `).join("");
+
+  } catch(error) {
+
+    box.innerHTML =
+      "<div class='message'>Failed to load campaigns.</div>";
+
+  }
+}
+
+
+async function changeCampaignStatus(id, status) {
+
+  try {
+
+    const response =
+      await fetch(API + "/api/admin/campaign/status", {
+
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+          initData: ADMIN_INIT_DATA,
+          campaign_id: id,
+          status: status
+        })
+
+      });
+
+    const data =
+      await response.json();
+
+    alert(data.success
+      ? "Campaign status updated."
+      : (data.error || "Update failed.")
+    );
+
+    loadCampaigns();
+    loadDashboard();
+
+  } catch(error) {
+
+    alert("Server error.");
+
+  }
+}
+
+
+async function createTimeline() {
+
+  const title =
+    document.getElementById("timelineTitle").value.trim();
+
+  const image_url =
+    document.getElementById("timelineImage").value.trim();
+
+  const description =
+    document.getElementById("timelineDescription").value.trim();
+
+  const publish_at =
+    document.getElementById("timelinePublish").value;
+
+  const expires_at =
+    document.getElementById("timelineExpire").value;
+
+  if (!image_url) {
+
+    alert("Please enter image URL.");
+    return;
+
+  }
+
+  try {
+
+    const response =
+      await fetch(API + "/api/admin/timeline/create", {
+
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+
+          initData: ADMIN_INIT_DATA,
+
+          title,
+          image_url,
+          description,
+
+          publish_at:
+            publish_at
+              ? new Date(publish_at).toISOString()
+              : new Date().toISOString(),
+
+          expires_at:
+            expires_at
+              ? new Date(expires_at).toISOString()
+              : null
+
+        })
+
+      });
+
+    const data =
+      await response.json();
+
+    if (data.success) {
+
+      alert("Timeline post created.");
+
+      document.getElementById("timelineTitle").value = "";
+      document.getElementById("timelineImage").value = "";
+      document.getElementById("timelineDescription").value = "";
+
+      loadTimeline();
+
+    } else {
+
+      alert(data.error || "Failed.");
+
+    }
+
+  } catch(error) {
+
+    alert("Server error.");
+
+  }
+}
+
+
+async function loadTimeline() {
+
+  const box =
+    document.getElementById("timelineList");
+
+  box.innerHTML = "Loading timeline...";
+
+  try {
+
+    const response =
+      await fetch(API + "/api/admin/timeline", {
+
+        headers: {
+          "x-telegram-init-data": ADMIN_INIT_DATA
+        }
+
+      });
+
+    const data =
+      await response.json();
+
+    const posts =
+      data.posts || [];
+
+    document.getElementById("timelineCount").textContent =
+      posts.length;
+
+    if (posts.length === 0) {
+
+      box.innerHTML =
+        "<div class='message'>No timeline posts.</div>";
+
+      return;
+    }
+
+    box.innerHTML =
+      posts.map(post => `
+
+        <div class="item">
+
+          <h3>
+            ${escapeHtml(post.title || "Daily Post")}
+          </h3>
+
+          <img
+            src="${escapeHtml(post.image_url)}"
+            style="width:100%;max-width:350px;border-radius:10px;margin:10px 0;"
+          >
+
+          <p>
+            ${escapeHtml(post.description || "")}
+          </p>
+
+          <p>
+            Active:
+            ${post.is_active ? "Yes" : "No"}
+          </p>
+
+          <button
+            class="${post.is_active ? "warning" : "success"}"
+            onclick="toggleTimeline(${post.id}, ${!post.is_active})">
+
+            ${post.is_active ? "Disable" : "Enable"}
+
+          </button>
+
+        </div>
+
+      `).join("");
+
+  } catch(error) {
+
+    box.innerHTML =
+      "<div class='message'>Failed to load timeline.</div>";
+
+  }
+}
+
+
+async function toggleTimeline(id, active) {
+
+  try {
+
+    const response =
+      await fetch(API + "/api/admin/timeline/toggle", {
+
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+
+          initData: ADMIN_INIT_DATA,
+
+          id: id,
+
+          is_active: active
+
+        })
+
+      });
+
+    const data =
+      await response.json();
+
+    alert(data.success
+      ? "Timeline updated."
+      : (data.error || "Update failed.")
+    );
+
+    loadTimeline();
+
+  } catch(error) {
+
+    alert("Server error.");
+
+  }
+}
+
+
+function escapeHtml(value) {
+
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
+}
+
+</script>
+
+</body>
+</html>
