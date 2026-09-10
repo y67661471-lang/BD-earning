@@ -1184,6 +1184,35 @@ app.post("/api/withdraw", async (req, res) => {
     }
 
     const telegramId = String(telegramUser.id);
+    // ===============================
+// WITHDRAWAL RATE LIMIT
+// ===============================
+
+const oneHourAgo =
+  new Date(Date.now() - 60 * 60 * 1000).toISOString();
+
+const { data: recentWithdrawals, error: rateError } =
+  await supabase
+    .from("withdrawals")
+    .select("id")
+    .eq("telegram_id", telegramId)
+    .gte("created_at", oneHourAgo);
+
+if (rateError) {
+  return res.status(500).json({
+    success: false,
+    error: "Security check failed"
+  });
+}
+
+// Maximum 3 withdrawal requests per hour
+if (recentWithdrawals &&
+    recentWithdrawals.length >= 3) {
+  return res.status(429).json({
+    success: false,
+    error: "Too many withdrawal requests. Please try again later."
+  });
+}
 
     const {
       amount,
