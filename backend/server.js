@@ -1346,21 +1346,30 @@ app.post("/api/admin/withdrawals/process", async (req, res) => {
     });
   }
 });
-
 // =====================================================
-// USER WITHDRAWAL REQUEST
+// USER WITHDRAWAL REQUEST - SECURE VERSION
 // =====================================================
 
 app.post("/api/withdraw", async (req, res) => {
-
   try {
+
+    // -----------------------------------------------
+    // 1. GET TELEGRAM INIT DATA
+    // -----------------------------------------------
 
     const initData =
       req.headers["x-telegram-init-data"];
 
-    // -------------------------------------------------
-    // VERIFY TELEGRAM
-    // -------------------------------------------------
+    if (!initData) {
+      return res.status(403).json({
+        success: false,
+        error: "Telegram authentication data missing"
+      });
+    }
+
+    // -----------------------------------------------
+    // 2. VERIFY TELEGRAM AUTHENTICATION
+    // -----------------------------------------------
 
     const telegramUser =
       verifyTelegramInitData(initData);
@@ -1375,9 +1384,9 @@ app.post("/api/withdraw", async (req, res) => {
     const telegramId =
       String(telegramUser.id);
 
-    // -------------------------------------------------
-    // INPUT
-    // -------------------------------------------------
+    // -----------------------------------------------
+    // 3. GET WITHDRAWAL DATA
+    // -----------------------------------------------
 
     const {
       amount,
@@ -1396,12 +1405,12 @@ app.post("/api/withdraw", async (req, res) => {
       });
     }
 
+    // -----------------------------------------------
+    // 4. VALIDATE AMOUNT
+    // -----------------------------------------------
+
     const withdrawAmount =
       Number(amount);
-
-    // -------------------------------------------------
-    // AMOUNT VALIDATION
-    // -------------------------------------------------
 
     if (
       !Number.isFinite(withdrawAmount) ||
@@ -1409,10 +1418,11 @@ app.post("/api/withdraw", async (req, res) => {
     ) {
       return res.status(400).json({
         success: false,
-        error: "Invalid amount"
+        error: "Invalid withdrawal amount"
       });
     }
 
+    // Minimum withdrawal = $5
     if (withdrawAmount < 5) {
       return res.status(400).json({
         success: false,
@@ -1420,14 +1430,14 @@ app.post("/api/withdraw", async (req, res) => {
       });
     }
 
-    // -------------------------------------------------
-    // PAYMENT METHOD
-    // -------------------------------------------------
+    // -----------------------------------------------
+    // 5. ALLOWED PAYMENT METHODS
+    // -----------------------------------------------
 
     const allowedMethods = [
       "bKash",
       "Nagad",
-      "Binance"
+      "Bank"
     ];
 
     if (!allowedMethods.includes(method)) {
@@ -1437,9 +1447,9 @@ app.post("/api/withdraw", async (req, res) => {
       });
     }
 
-    // -------------------------------------------------
-    // ACCOUNT VALIDATION
-    // -------------------------------------------------
+    // -----------------------------------------------
+    // 6. CLEAN ACCOUNT NUMBER
+    // -----------------------------------------------
 
     const cleanAccount =
       String(account_number).trim();
@@ -1454,14 +1464,13 @@ app.post("/api/withdraw", async (req, res) => {
       });
     }
 
-    // -------------------------------------------------
-    // RATE LIMIT
-    // -------------------------------------------------
+    // -----------------------------------------------
+    // 7. SECURITY: WITHDRAWAL RATE LIMIT
+    // -----------------------------------------------
 
     const oneHourAgo =
       new Date(
-        Date.now() -
-        60 * 60 * 1000
+        Date.now() - 60 * 60 * 1000
       ).toISOString();
 
     const {
@@ -1474,6 +1483,11 @@ app.post("/api/withdraw", async (req, res) => {
       .gte("created_at", oneHourAgo);
 
     if (rateError) {
+      console.error(
+        "Withdrawal rate check error:",
+        rateError
+      );
+
       return res.status(500).json({
         success: false,
         error: "Security check failed"
@@ -1492,34 +1506,43 @@ app.post("/api/withdraw", async (req, res) => {
       });
     }
 
-    // -------------------------------------------------
-    // GET USER
-    // -------------------------------------------------
+    // -----------------------------------------------
+    // 8. GET USER
+    // -----------------------------------------------
 
     const {
       data: user,
       error: userError
     } = await supabase
       .from("users")
-      .select(`
-        telegram_id,
-        balance,
-        is_blocked,
-        security_score
-      `)
+      .select(
+        "telegram_id, balance, is_blocked, security_score"
+      )
       .eq("telegram_id", telegramId)
-      .single();
+      .maybeSingle();
 
-    if (userError || !user) {
+    if (userError) {
+      console.error(
+        "User lookup error:",
+        userError
+      );
+
+      return res.status(500).json({
+        success: false,
+        error: "Failed to verify user"
+      });
+    }
+
+    if (!user) {
       return res.status(404).json({
         success: false,
         error: "User not found"
       });
     }
 
-    // -------------------------------------------------
-    // BLOCKED USER CHECK
-    // -------------------------------------------------
+    // -----------------------------------------------
+    // 9. BLOCKED USER CHECK
+    // -----------------------------------------------
 
     if (user.is_blocked) {
       return res.status(403).json({
@@ -1528,9 +1551,9 @@ app.post("/api/withdraw", async (req, res) => {
       });
     }
 
-    // -------------------------------------------------
-    // SECURITY SCORE CHECK
-    // -------------------------------------------------
+    // -----------------------------------------------
+    // 10. SECURITY SCORE CHECK
+    // -----------------------------------------------
 
     const securityScore =
       Number(user.security_score ?? 100);
@@ -1543,23 +1566,23 @@ app.post("/api/withdraw", async (req, res) => {
       });
     }
 
-    // -------------------------------------------------
-    // BALANCE CHECK
-    // -------------------------------------------------
+    // -----------------------------------------------
+    // 11. BALANCE CHECK
+    // -----------------------------------------------
 
-    if (
-      Number(user.balance) <
-      withdrawAmount
-    ) {
+    const balance =
+      Number(user.balance || 0);
+
+    if (balance < withdrawAmount) {
       return res.status(400).json({
         success: false,
         error: "Insufficient balance"
       });
     }
 
-    // -------------------------------------------------
-    // PENDING WITHDRAWAL CHECK
-    // -------------------------------------------------
+    // -----------------------------------------------
+    // 12. ONE PENDING WITHDRAWAL ONLY
+    // -----------------------------------------------
 
     const {
       data: pending,
@@ -1572,9 +1595,14 @@ app.post("/api/withdraw", async (req, res) => {
       .limit(1);
 
     if (pendingError) {
+      console.error(
+        "Pending withdrawal check error:",
+        pendingError
+      );
+
       return res.status(500).json({
         success: false,
-        error: "Pending withdrawal check failed"
+        error: "Security check failed"
       });
     }
 
@@ -1589,48 +1617,52 @@ app.post("/api/withdraw", async (req, res) => {
       });
     }
 
-    // -------------------------------------------------
-    // CREATE WITHDRAWAL
-    // -------------------------------------------------
+    // -----------------------------------------------
+    // 13. CREATE WITHDRAWAL REQUEST
+    // -----------------------------------------------
 
     const {
-      data,
-      error
+      data: withdrawal,
+      error: withdrawalError
     } = await supabase
       .from("withdrawals")
       .insert({
         telegram_id: telegramId,
         amount: withdrawAmount,
-        method,
+        method: method,
         account_number: cleanAccount,
         status: "pending"
       })
       .select()
       .single();
 
-    if (error) {
+    if (withdrawalError) {
       console.error(
         "Withdrawal insert error:",
-        error
+        withdrawalError
       );
 
       return res.status(500).json({
         success: false,
-        error: error.message
+        error: "Failed to create withdrawal request"
       });
     }
+
+    // -----------------------------------------------
+    // 14. SUCCESS
+    // -----------------------------------------------
 
     return res.json({
       success: true,
       message:
         "Withdrawal request submitted successfully",
-      withdrawal: data
+      withdrawal
     });
 
   } catch (error) {
 
     console.error(
-      "Withdrawal error:",
+      "Withdrawal server error:",
       error
     );
 
