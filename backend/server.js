@@ -1248,4 +1248,53 @@ app.post("/api/withdraw", async (req, res) => {
     });
   }
 });
+// ===============================
+// USER WITHDRAWAL HISTORY
+// ===============================
+
+app.get("/api/withdrawals/:telegramId", async (req, res) => {
+  try {
+    const telegramId = req.params.telegramId;
+
+    if (!telegramId) {
+      return res.status(400).json({
+        success: false,
+        error: "Telegram ID is required"
+      });
+    }
+
+    const { data, error } = await supabase
+      .from("withdrawals")
+      .select(`
+        id,
+        amount,
+        method,
+        account_number,
+        status,
+        admin_note,
+        created_at,
+        processed_at
+      `)
+      .eq("telegram_id", telegramId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+
+    return res.json({
+      success: true,
+      withdrawals: data || []
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: "Server error"
+    });
+  }
+});
 module.exports = app;
