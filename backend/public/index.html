@@ -960,7 +960,74 @@ async function loadDailyTimelinePhoto(){
 // ===============================
 // START
 // ===============================
+async function submitWithdrawal() {
 
+    const amount =
+        document.getElementById("withdrawAmount").value.trim();
+
+    const method =
+        document.getElementById("withdrawMethod").value;
+
+    const account =
+        document.getElementById("withdrawAccount").value.trim();
+
+    const initData = tg.initData;
+
+    if (!initData) {
+        alert("Please open the app from Telegram.");
+        return;
+    }
+
+    if (!amount || !method || !account) {
+        alert("Please fill in all withdrawal fields.");
+        return;
+    }
+
+    try {
+
+        const response = await fetch("/api/withdraw", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json",
+                "x-telegram-init-data": initData
+            },
+
+            body: JSON.stringify({
+                amount: Number(amount),
+                method: method,
+                account_number: account
+            })
+
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+
+            alert(
+                "❌ " +
+                (result.error || "Withdrawal request failed.")
+            );
+
+            return;
+        }
+
+        alert(
+            "✅ Withdrawal request submitted successfully!"
+        );
+
+        document.getElementById("withdrawAmount").value = "";
+        document.getElementById("withdrawAccount").value = "";
+
+    } catch (error) {
+
+        console.error("Withdrawal error:", error);
+
+        alert("❌ Server connection error.");
+    }
+}
 loginUser();
 
 loadTasks();
