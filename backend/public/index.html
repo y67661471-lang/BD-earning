@@ -969,7 +969,84 @@ loadAdvertisements();
 
 loadDailyTimelinePhoto();
 
+async function submitWithdrawal() {
+  const amount =
+    document.getElementById("withdrawAmount").value;
 
+  const method =
+    document.getElementById("withdrawMethod").value;
+
+  const account =
+    document.getElementById("withdrawAccount").value.trim();
+
+  const message =
+    document.getElementById("withdrawMessage");
+
+  const telegramId =
+    window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+
+  if (!telegramId) {
+    message.innerHTML =
+      "❌ Please open the Mini App from Telegram.";
+    return;
+  }
+
+  if (!amount || Number(amount) < 5) {
+    message.innerHTML =
+      "❌ Minimum withdrawal is $5.";
+    return;
+  }
+
+  if (!method) {
+    message.innerHTML =
+      "❌ Please select a payment method.";
+    return;
+  }
+
+  if (!account) {
+    message.innerHTML =
+      "❌ Please enter your account number.";
+    return;
+  }
+
+  try {
+    message.innerHTML = "⏳ Submitting...";
+
+    const response = await fetch("/api/withdraw", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        telegram_id: String(telegramId),
+        amount: Number(amount),
+        method: method,
+        account_number: account
+      })
+    });
+
+    const result = await response.json();
+
+    if (!result.success) {
+      message.innerHTML =
+        "❌ " + (result.error || "Withdrawal failed");
+      return;
+    }
+
+    message.innerHTML =
+      "✅ Withdrawal request submitted successfully.";
+
+    document.getElementById("withdrawAmount").value = "";
+    document.getElementById("withdrawMethod").value = "";
+    document.getElementById("withdrawAccount").value = "";
+
+  } catch (error) {
+    console.error(error);
+
+    message.innerHTML =
+      "❌ Server error. Please try again.";
+  }
+}
 </script>
 
 </body>
