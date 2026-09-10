@@ -9,111 +9,16 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-// ===============================
-// DAILY AUTO TIMELINE PHOTO
-// ===============================
-app.get("/api/timeline/current", async (req, res) => {
-  try {
-    const now = new Date().toISOString();
-
-    const { data, error } = await supabase
-      .from("timeline_posts")
-      .select("*")
-      .eq("is_active", true)
-      .lte("publish_at", now)
-      .or(`expires_at.is.null,expires_at.gt.${now}`)
-      .order("publish_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (error) {
-      console.error("Timeline error:", error);
-      return res.status(500).json({
-        success: false,
-        error: "Failed to load timeline"
-      });
-    }
-
-    res.json({
-      success: true,
-      post: data || null
-    });
-
-  } catch (err) {
-    console.error(err);
-
-    res.status(500).json({
-      success: false,
-      error: "Server error"
-    });
-  }
-});
-app.use(express.static("public"));
-
-app.get("/app", (req, res) => {
-  res.sendFile(__dirname + "/public/index.html");
-});
-// Get users - testing only
-app.get("/api/users", async (req, res) => {
-  try {
-    const { data, error } = await supabase
-      .from("users")
-      .select("*")
-      .limit(10);
-
-    if (error) {
-      return res.status(500).json({
-        success: false,
-        error: error.message
-      });
-    }
-
-    res.json({
-      success: true,
-      users: data
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: "Server error"
-    });
-  }
-});
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SECRET_KEY
 );
-// Get active tasks
-app.get("/api/tasks", async (req, res) => {
-  try {
-    const { data, error } = await supabase
-      .from("tasks")
-      .select("*")
-      .eq("is_active", true)
-      .order("id", { ascending: false });
 
-    if (error) {
-      return res.status(500).json({
-        success: false,
-        error: error.message
-      });
-    }
+// =====================================================
+// TELEGRAM AUTHENTICATION
+// =====================================================
 
-    res.json({
-      success: true,
-      tasks: data
-    });
-
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: "Server error"
-    });
-  }
-});
-
-// Telegram initData verification
 function verifyTelegramInitData(initData) {
   if (!initData || !process.env.TELEGRAM_BOT_TOKEN) {
     return null;
@@ -168,19 +73,225 @@ function verifyTelegramInitData(initData) {
     return null;
   }
 }
+
+// =====================================================
+// ADMIN AUTHENTICATION
+// =====================================================
+
+function verifyAdmin(initData) {
+  const telegramUser = verifyTelegramInitData(initData);
+
+  if (!telegramUser || !telegramUser.id) {
+    return null;
+  }
+
+  if (
+    !process.env.ADMIN_TELEGRAM_ID ||
+    String(telegramUser.id) !== String(process.env.ADMIN_TELEGRAM_ID)
+  ) {
+    return null;
+  }
+
+  return telegramUser;
+}
+
+// =====================================================
+// BASIC ROUTES
+// =====================================================
+
+app.use(express.static("public"));
+
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/public/index.html");
 });
 
-// Telegram login
+app.get("/app", (req, res) => {
+  res.sendFile(__dirname + "/public/index.html");
+});
+
+// =====================================================
+// DAILY AUTO TIMELINE PHOTO
+// =====================================================
+
+app.get("/api/timeline/current", async (req, res) => {
+  try {
+    const now = new Date().toISOString();
+
+    const { data, error } = await supabase
+      .from("timeline_posts")
+      .select("*")
+      .eq("is_active", true)
+      .lte("publish_at", now)
+      .or(`expires_at.is.null,expires_at.gt.${now}`)
+      .order("publish_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Timeline error:", error);
+
+      return res.status(500).json({
+        success: false,
+        error: "Failed to load timeline"
+      });
+    }
+
+    res.json({
+      success: true,
+      post: data || null
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      error: "Server error"
+    });
+  }
+});
+
+// =====================================================
+// TEST USERS
+// =====================================================
+
+app.get("/api/users", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("users")
+      .select("*")
+      .limit(10);
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+
+    res.json({
+      success: true,
+      users: data
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Server error"
+    });
+  }
+});
+
+// =====================================================
+// TASKS
+// =====================================================
+
+app.get("/api/tasks", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("tasks")
+      .select("*")
+      .eq("is_active", true)
+      .order("id", { ascending: false });
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+
+    res.json({
+      success: true,
+      tasks: data
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Server error"
+    });
+  }
+});
+
+// =====================================================
+// TELEGRAM LOGIN
+// =====================================================
+
 app.post("/api/auth", async (req, res) => {
   try {
     const { initData } = req.body;
-// ===============================
-// SUB ADMIN WALLET
-// ===============================
 
-// Create / get sub-admin
+    const telegramUser = verifyTelegramInitData(initData);
+
+    if (!telegramUser || !telegramUser.id) {
+      return res.status(401).json({
+        success: false,
+        error: "Invalid Telegram authentication"
+      });
+    }
+
+    const telegramId = String(telegramUser.id);
+    const username = telegramUser.username || null;
+
+    let { data: user, error } = await supabase
+      .from("users")
+      .select("*")
+      .eq("telegram_id", telegramId)
+      .maybeSingle();
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+
+    if (!user) {
+      const referralCode = "BD" + telegramId.slice(-8);
+
+      const result = await supabase
+        .from("users")
+        .insert({
+          telegram_id: telegramId,
+          username,
+          balance: 0,
+          total_earned: 0,
+          total_withdraw: 0,
+          referral_code: referralCode
+        })
+        .select()
+        .single();
+
+      if (result.error) {
+        return res.status(500).json({
+          success: false,
+          error: result.error.message
+        });
+      }
+
+      user = result.data;
+    }
+
+    res.json({
+      success: true,
+      user
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      error: "Authentication server error"
+    });
+  }
+});
+
+// =====================================================
+// SUB-ADMIN CREATE / GET WALLET
+// =====================================================
+
 app.post("/api/sub-admin/create", async (req, res) => {
   try {
     const { telegram_id, username } = req.body;
@@ -225,7 +336,6 @@ app.post("/api/sub-admin/create", async (req, res) => {
 
       subAdmin = result.data;
 
-      // Create wallet
       const wallet = await supabase
         .from("sub_admin_wallets")
         .insert({
@@ -262,10 +372,12 @@ app.post("/api/sub-admin/create", async (req, res) => {
     res.json({
       success: true,
       sub_admin: subAdmin,
-      wallet: wallet
+      wallet
     });
 
   } catch (error) {
+    console.error(error);
+
     res.status(500).json({
       success: false,
       error: "Sub-admin server error"
@@ -273,8 +385,6 @@ app.post("/api/sub-admin/create", async (req, res) => {
   }
 });
 
-
-// Get sub-admin wallet
 app.get("/api/sub-admin/wallet/:telegramId", async (req, res) => {
   try {
     const telegramId = String(req.params.telegramId);
@@ -314,7 +424,7 @@ app.get("/api/sub-admin/wallet/:telegramId", async (req, res) => {
 
     res.json({
       success: true,
-      wallet: wallet
+      wallet
     });
 
   } catch (error) {
@@ -324,75 +434,11 @@ app.get("/api/sub-admin/wallet/:telegramId", async (req, res) => {
     });
   }
 });
-    const telegramUser = verifyTelegramInitData(initData);
 
-    if (!telegramUser || !telegramUser.id) {
-      return res.status(401).json({
-        success: false,
-        error: "Invalid Telegram authentication"
-      });
-    }
+// =====================================================
+// SUB-ADMIN AD CAMPAIGNS
+// =====================================================
 
-    const telegramId = String(telegramUser.id);
-    const username = telegramUser.username || null;
-
-    let { data: user, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("telegram_id", telegramId)
-      .maybeSingle();
-
-    if (error) {
-      return res.status(500).json({
-        success: false,
-        error: error.message
-      });
-    }
-
-    // Create new user
-    if (!user) {
-      const referralCode = "BD" + telegramId.slice(-8);
-
-      const result = await supabase
-        .from("users")
-        .insert({
-          telegram_id: telegramId,
-          username: username,
-          balance: 0,
-          total_earned: 0,
-          total_withdraw: 0,
-          referral_code: referralCode
-        })
-        .select()
-        .single();
-
-      if (result.error) {
-        return res.status(500).json({
-          success: false,
-          error: result.error.message
-        });
-      }
-
-      user = result.data;
-    }
-
-    res.json({
-      success: true,
-      user: user
-    });
-
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: "Authentication server error"
-    });
-  }
-});
-// ===============================
-// SUB ADMIN AD CAMPAIGNS
-// ===============================
-
-// Create campaign
 app.post("/api/sub-admin/campaigns", async (req, res) => {
   try {
     const {
@@ -416,7 +462,6 @@ app.post("/api/sub-admin/campaigns", async (req, res) => {
       });
     }
 
-    // Find sub-admin
     const { data: subAdmin, error: adminError } = await supabase
       .from("sub_admins")
       .select("*")
@@ -437,7 +482,6 @@ app.post("/api/sub-admin/campaigns", async (req, res) => {
       });
     }
 
-    // Basic validation
     if (Number(payout) <= 0) {
       return res.status(400).json({
         success: false,
@@ -466,14 +510,13 @@ app.post("/api/sub-admin/campaigns", async (req, res) => {
       });
     }
 
-    // Create campaign
     const { data: campaign, error } = await supabase
       .from("ad_campaigns")
       .insert({
         sub_admin_id: subAdmin.id,
-        title: title,
+        title,
         description: description || null,
-        ad_url: ad_url,
+        ad_url,
         image_url: image_url || null,
         payout: Number(payout),
         daily_budget: Number(daily_budget) || 0,
@@ -497,7 +540,7 @@ app.post("/api/sub-admin/campaigns", async (req, res) => {
     res.json({
       success: true,
       message: "Campaign created successfully",
-      campaign: campaign
+      campaign
     });
 
   } catch (error) {
@@ -508,8 +551,6 @@ app.post("/api/sub-admin/campaigns", async (req, res) => {
   }
 });
 
-
-// Get sub-admin campaigns
 app.get("/api/sub-admin/campaigns/:telegramId", async (req, res) => {
   try {
     const telegramId = String(req.params.telegramId);
@@ -549,7 +590,7 @@ app.get("/api/sub-admin/campaigns/:telegramId", async (req, res) => {
 
     res.json({
       success: true,
-      campaigns: campaigns
+      campaigns
     });
 
   } catch (error) {
@@ -559,13 +600,21 @@ app.get("/api/sub-admin/campaigns/:telegramId", async (req, res) => {
     });
   }
 });
-// ===============================
+
+// =====================================================
 // ADMIN CAMPAIGN CONTROL
-// ===============================
+// =====================================================
 
 app.post("/api/admin/campaign/status", async (req, res) => {
   try {
-    const { campaign_id, status } = req.body;
+    const { initData, campaign_id, status } = req.body;
+
+    if (!verifyAdmin(initData)) {
+      return res.status(403).json({
+        success: false,
+        error: "Unauthorized admin"
+      });
+    }
 
     const allowedStatuses = [
       "pending",
@@ -607,10 +656,17 @@ app.post("/api/admin/campaign/status", async (req, res) => {
   }
 });
 
-
-// Get all campaigns for admin
 app.get("/api/admin/campaigns", async (req, res) => {
   try {
+    const initData = req.headers["x-telegram-init-data"];
+
+    if (!verifyAdmin(initData)) {
+      return res.status(403).json({
+        success: false,
+        error: "Unauthorized admin"
+      });
+    }
+
     const { data, error } = await supabase
       .from("ad_campaigns")
       .select(`
@@ -643,8 +699,10 @@ app.get("/api/admin/campaigns", async (req, res) => {
   }
 });
 
+// =====================================================
+// USER ADVERTISEMENTS
+// =====================================================
 
-// Get active campaigns for users
 app.get("/api/advertisements", async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -672,29 +730,10 @@ app.get("/api/advertisements", async (req, res) => {
     });
   }
 });
-// ===============================
-// ADMIN AUTHENTICATION
-// ===============================
 
-function verifyAdmin(initData) {
-  const telegramUser = verifyTelegramInitData(initData);
-
-  if (!telegramUser || !telegramUser.id) {
-    return null;
-  }
-
-  if (
-    String(telegramUser.id) !==
-    String(process.env.ADMIN_TELEGRAM_ID)
-  ) {
-    return null;
-  }
-
-  return telegramUser;
-}
-// ===============================
+// =====================================================
 // ADMIN DAILY PHOTO MANAGEMENT
-// ===============================
+// =====================================================
 
 function isValidHttpsUrl(value) {
   try {
@@ -705,12 +744,11 @@ function isValidHttpsUrl(value) {
   }
 }
 
-
-// Create daily timeline photo
+// CREATE PHOTO
 app.post("/api/admin/timeline/create", async (req, res) => {
   try {
     const {
-      admin_telegram_id,
+      initData,
       title,
       image_url,
       description,
@@ -718,12 +756,9 @@ app.post("/api/admin/timeline/create", async (req, res) => {
       expires_at
     } = req.body;
 
-    // Admin ID check
-    if (
-      !admin_telegram_id ||
-      String(admin_telegram_id) !==
-      String(process.env.ADMIN_TELEGRAM_ID)
-    ) {
+    const admin = verifyAdmin(initData);
+
+    if (!admin) {
       return res.status(403).json({
         success: false,
         error: "Unauthorized admin"
@@ -741,7 +776,7 @@ app.post("/api/admin/timeline/create", async (req, res) => {
       .from("timeline_posts")
       .insert({
         title: title || "BD Earning",
-        image_url: image_url,
+        image_url,
         description: description || "Work • Earn • Withdraw",
         publish_at: publish_at || new Date().toISOString(),
         expires_at: expires_at || null,
@@ -757,13 +792,12 @@ app.post("/api/admin/timeline/create", async (req, res) => {
       });
     }
 
-    // Admin activity log
     await supabase
       .from("timeline_admin_logs")
       .insert({
         action: "create",
         timeline_id: data.id,
-        admin_id: String(admin_telegram_id)
+        admin_id: String(admin.id)
       });
 
     res.json({
@@ -782,18 +816,14 @@ app.post("/api/admin/timeline/create", async (req, res) => {
   }
 });
 
-
-// Get all timeline photos
+// GET ALL PHOTOS
 app.get("/api/admin/timeline", async (req, res) => {
   try {
-    const adminTelegramId =
-      String(req.headers["x-admin-telegram-id"] || "");
+    const initData = req.headers["x-telegram-init-data"];
 
-    if (
-      !adminTelegramId ||
-      adminTelegramId !==
-      String(process.env.ADMIN_TELEGRAM_ID)
-    ) {
+    const admin = verifyAdmin(initData);
+
+    if (!admin) {
       return res.status(403).json({
         success: false,
         error: "Unauthorized admin"
@@ -818,8 +848,6 @@ app.get("/api/admin/timeline", async (req, res) => {
     });
 
   } catch (error) {
-    console.error(error);
-
     res.status(500).json({
       success: false,
       error: "Timeline server error"
@@ -827,21 +855,18 @@ app.get("/api/admin/timeline", async (req, res) => {
   }
 });
 
-
-// Enable / disable timeline photo
+// ENABLE / DISABLE PHOTO
 app.post("/api/admin/timeline/toggle", async (req, res) => {
   try {
     const {
-      admin_telegram_id,
+      initData,
       timeline_id,
       is_active
     } = req.body;
 
-    if (
-      !admin_telegram_id ||
-      String(admin_telegram_id) !==
-      String(process.env.ADMIN_TELEGRAM_ID)
-    ) {
+    const admin = verifyAdmin(initData);
+
+    if (!admin) {
       return res.status(403).json({
         success: false,
         error: "Unauthorized admin"
@@ -878,7 +903,7 @@ app.post("/api/admin/timeline/toggle", async (req, res) => {
           ? "activate"
           : "disable",
         timeline_id: data.id,
-        admin_id: String(admin_telegram_id)
+        admin_id: String(admin.id)
       });
 
     res.json({
@@ -895,4 +920,9 @@ app.post("/api/admin/timeline/toggle", async (req, res) => {
     });
   }
 });
+
+// =====================================================
+// START
+// =====================================================
+
 module.exports = app;
