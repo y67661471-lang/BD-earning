@@ -1030,4 +1030,115 @@ app.post("/api/admin/users/block", async (req, res) => {
     });
   }
 });
+// ===============================
+// ADMIN WITHDRAWAL MANAGEMENT
+// ===============================
+
+app.get("/api/admin/withdrawals", async (req, res) => {
+  try {
+    const initData = req.headers["x-telegram-init-data"];
+
+    if (!verifyAdmin(initData)) {
+      return res.status(403).json({
+        success: false,
+        error: "Unauthorized"
+      });
+    }
+
+    const { data, error } = await supabase
+      .from("withdrawals")
+      .select(`
+        id,
+        telegram_id,
+        amount,
+        method,
+        account_number,
+        status,
+        admin_note,
+        created_at,
+        processed_at
+      `)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+
+    return res.json({
+      success: true,
+      withdrawals: data || []
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: "Server error"
+    });
+  }
+});
+
+
+// ===============================
+// APPROVE / REJECT WITHDRAWAL
+// ===============================
+
+app.post("/api/admin/withdrawals/process", async (req, res) => {
+  try {
+    const initData = req.headers["x-telegram-init-data"];
+
+    if (!verifyAdmin(initData)) {
+      return res.status(403).json({
+        success: false,
+        error: "Unauthorized"
+      });
+    }
+
+    const {
+      withdrawal_id,
+      action,
+      admin_note
+    } = req.body;
+
+    if (!withdrawal_id) {
+      return res.status(400).json({
+        success: false,
+        error: "withdrawal_id is required"
+      });
+    }
+
+    if (!["approved", "rejected"].includes(action)) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid action"
+      });
+    }
+
+    const { data, error } = await supabase.rpc(
+      "process_withdrawal",
+      {
+        p_withdrawal_id: Number(withdrawal_id),
+        p_action: action,
+        p_admin_note: admin_note || null
+      }
+    );
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+
+    return res.json(data);
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: "Server error"
+    });
+  }
+});
 module.exports = app;
