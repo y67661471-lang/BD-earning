@@ -975,4 +975,59 @@ app.get("/api/admin/users", async (req, res) => {
     });
   }
 });
+// ===============================
+// ADMIN BLOCK / UNBLOCK USER
+// ===============================
+
+app.post("/api/admin/users/block", async (req, res) => {
+  try {
+    const initData = req.headers["x-telegram-init-data"];
+
+    if (!verifyAdmin(initData)) {
+      return res.status(403).json({
+        success: false,
+        error: "Unauthorized"
+      });
+    }
+
+    const { telegram_id, is_blocked } = req.body;
+
+    if (!telegram_id) {
+      return res.status(400).json({
+        success: false,
+        error: "telegram_id is required"
+      });
+    }
+
+    const { data, error } = await supabase
+      .from("users")
+      .update({
+        is_blocked: Boolean(is_blocked)
+      })
+      .eq("telegram_id", telegram_id)
+      .select()
+      .single();
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: Boolean(is_blocked)
+        ? "User blocked successfully"
+        : "User unblocked successfully",
+      user: data
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: "Server error"
+    });
+  }
+});
 module.exports = app;
