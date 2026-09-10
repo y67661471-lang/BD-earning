@@ -413,6 +413,18 @@
 
 
     <!-- WITHDRAWALS -->
+   <!-- WITHDRAWAL MANAGEMENT -->
+<section id="withdrawalsSection" class="section">
+  <h2>💸 Withdrawal Management</h2>
+
+  <button onclick="loadWithdrawals()">
+    🔄 Refresh Withdrawals
+  </button>
+
+  <div id="withdrawalList" style="margin-top:15px;">
+    Loading...
+  </div>
+</section> 
     <div id="withdrawals" class="section">
 
       <div class="panel">
@@ -1419,6 +1431,197 @@ function escapeJs(value) {
       "\\r"
     );
 }
+ // ===============================
+// WITHDRAWAL MANAGEMENT
+// ===============================
+
+async function loadWithdrawals() {
+  const box = document.getElementById("withdrawalList");
+
+  box.innerHTML = "Loading...";
+
+  try {
+    const response = await fetch(
+      API + "/api/admin/withdrawals",
+      {
+        headers: {
+          "x-telegram-init-data": ADMIN_INIT_DATA
+        }
+      }
+    );
+
+    const result = await response.json();
+
+    if (!result.success) {
+      box.innerHTML =
+        "<p>❌ " + escapeHtml(result.error || "Failed") + "</p>";
+      return;
+    }
+
+    if (!result.withdrawals || result.withdrawals.length === 0) {
+      box.innerHTML = "<p>No withdrawals found.</p>";
+      return;
+    }
+
+    box.innerHTML = result.withdrawals.map(w => {
+
+      const status = String(w.status || "pending");
+
+      return `
+        <div class="card" style="
+          padding:15px;
+          margin-bottom:12px;
+          border:1px solid #ddd;
+          border-radius:12px;
+        ">
+
+          <b>Withdrawal #${w.id}</b>
+
+          <p>
+            👤 User:
+            ${escapeHtml(w.telegram_id)}
+          </p>
+
+          <p>
+            💵 Amount:
+            <b>$${Number(w.amount).toFixed(2)}</b>
+          </p>
+
+          <p>
+            💳 Method:
+            ${escapeHtml(w.method)}
+          </p>
+
+          <p>
+            📱 Account:
+            ${escapeHtml(w.account_number)}
+          </p>
+
+          <p>
+            📌 Status:
+            <b>${escapeHtml(status)}</b>
+          </p>
+
+          <p>
+            🕒 ${escapeHtml(
+              new Date(w.created_at).toLocaleString()
+            )}
+          </p>
+
+          ${
+            status === "pending"
+              ? `
+                <input
+                  id="note-${w.id}"
+                  type="text"
+                  placeholder="Admin note"
+                  style="width:100%;padding:10px;margin:8px 0;"
+                >
+
+                <button
+                  onclick="processWithdrawal(${w.id}, 'approved')"
+                >
+                  ✅ Approve
+                </button>
+
+                <button
+                  onclick="processWithdrawal(${w.id}, 'rejected')"
+                >
+                  ❌ Reject
+                </button>
+              `
+              : `
+                <p>
+                  📝 Note:
+                  ${escapeHtml(w.admin_note || "No note")}
+                </p>
+              `
+          }
+
+        </div>
+      `;
+    }).join("");
+
+  } catch (error) {
+
+    box.innerHTML =
+      "<p>❌ Server error</p>";
+
+    console.error(error);
+  }
+}
+
+
+// ===============================
+// PROCESS WITHDRAWAL
+// ===============================
+
+async function processWithdrawal(id, action) {
+
+  const noteInput = document.getElementById("note-" + id);
+
+  const admin_note = noteInput
+    ? noteInput.value.trim()
+    : "";
+
+  const actionText =
+    action === "approved"
+      ? "approve"
+      : "reject";
+
+  if (!confirm(
+    "Are you sure you want to " +
+    actionText +
+    " this withdrawal?"
+  )) {
+    return;
+  }
+
+  try {
+
+    const response = await fetch(
+      API + "/api/admin/withdrawals/process",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+          "x-telegram-init-data": ADMIN_INIT_DATA
+        },
+
+        body: JSON.stringify({
+          withdrawal_id: id,
+          action: action,
+          admin_note: admin_note
+        })
+      }
+    );
+
+    const result = await response.json();
+
+    if (!result.success) {
+      alert(
+        "❌ " +
+        (result.error || "Withdrawal processing failed")
+      );
+      return;
+    }
+
+    alert(
+      action === "approved"
+        ? "✅ Withdrawal approved"
+        : "❌ Withdrawal rejected"
+    );
+
+    loadWithdrawals();
+
+  } catch (error) {
+
+    alert("❌ Server error");
+
+    console.error(error);
+  }
+} 
 
 </script>
 
