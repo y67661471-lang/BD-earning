@@ -1,1629 +1,425 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BD Earning - Admin Panel</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BD Earning Admin</title>
+    <style>
+      :root {
+        --navy: #0b1020;
+        --blue: #0f6fff;
+        --cyan: #3dd9ff;
+        --white: #f6fbff;
+        --panel: #ffffff;
+        --muted: #5c6b82;
+        --line: rgba(15, 111, 255, 0.12);
+        --success: #1dbf73;
+        --warning: #ffb703;
+        --danger: #ef476f;
+        --bg: #eef5ff;
+      }
 
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-    }
-
-    body {
-      background: #f4f6f9;
-      color: #222;
-    }
-
-    .header {
-      background: #111827;
-      color: white;
-      padding: 18px;
-      text-align: center;
-    }
-
-    .header h1 {
-      font-size: 22px;
-      margin-bottom: 5px;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: auto;
-      padding: 20px;
-    }
-
-    .login-box,
-    .panel {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 3px 15px rgba(0,0,0,.08);
-    }
-
-    input,
-    select,
-    textarea,
-    button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 8px;
-      margin-bottom: 12px;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-    }
-
-    button {
-      background: #2563eb;
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    button:hover {
-      opacity: .9;
-    }
-
-    .dashboard {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-
-    .card {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 3px 12px rgba(0,0,0,.07);
-    }
-
-    .card h3 {
-      font-size: 14px;
-      color: #666;
-      margin-bottom: 8px;
-    }
-
-    .card strong {
-      font-size: 24px;
-    }
-
-    .menu {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    .menu button {
-      background: #374151;
-    }
-
-    .section {
-      display: none;
-    }
-
-    .section.active {
-      display: block;
-    }
-
-    .danger {
-      background: #dc2626;
-    }
-
-    .success {
-      background: #16a34a;
-    }
-
-    .warning {
-      background: #d97706;
-    }
-
-    .item {
-      border: 1px solid #e5e7eb;
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 10px;
-    }
-
-    .item button {
-      width: auto;
-      padding: 8px 12px;
-      margin-right: 5px;
-    }
-
-    .status {
-      padding: 5px 9px;
-      border-radius: 6px;
-      background: #e5e7eb;
-      font-size: 12px;
-    }
-
-    .message {
-      padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 15px;
-      background: #eef2ff;
-    }
-
-    .error {
-      background: #fee2e2;
-      color: #991b1b;
-    }
-
-    .success-message {
-      background: #dcfce7;
-      color: #166534;
-    }
-
-    img.timeline-image {
-      width: 100%;
-      max-width: 350px;
-      border-radius: 10px;
-      margin: 10px 0;
-      display: block;
-    }
-
-    @media(max-width:600px) {
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: linear-gradient(180deg, #f3f7ff 0%, #edf5ff 100%);
+        color: var(--navy);
+      }
+      a { color: inherit; text-decoration: none; }
       .container {
-        padding: 10px;
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+      .topbar {
+        background: rgba(11, 16, 32, 0.96);
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+      }
+      .nav {
+        min-height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .brand {
+        color: white;
+        font-weight: 900;
+        font-size: 1.5rem;
+      }
+      .brand span { color: var(--cyan); }
+      .header-note {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.9rem;
       }
 
-      .card strong {
-        font-size: 20px;
+      .page {
+        padding: 52px 0 80px;
       }
-    }
-  </style>
-</head>
-
-<body>
-
-<div class="header">
-  <h1>BD Earning Admin Panel</h1>
-  <p>Secure Management Dashboard</p>
-</div>
-
-<div class="container">
-
-  <!-- ADMIN LOGIN -->
-  <div id="loginBox" class="login-box">
-
-    <h2>Admin Authentication</h2>
-
-    <p style="margin:10px 0;color:#666;">
-      Enter Telegram Init Data to access the protected admin API.
-    </p>
-
-    <textarea
-      id="initData"
-      rows="4"
-      placeholder="Paste Telegram initData here">
-    </textarea>
-
-    <button onclick="loginAdmin()">
-      Login to Admin Panel
-    </button>
-
-    <div id="loginMessage"></div>
-
-  </div>
-
-
-  <!-- DASHBOARD -->
-  <div id="dashboardArea" style="display:none;">
-
-    <div class="dashboard">
-
-      <div class="card">
-        <h3>Total Users</h3>
-        <strong id="totalUsers">0</strong>
+      .login-box, .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        box-shadow: 0 18px 45px rgba(14, 28, 52, 0.07);
+      }
+      .login-box {
+        max-width: 560px;
+        margin: 0 auto;
+        padding: 30px;
+      }
+      .eyebrow {
+        color: var(--blue);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 800;
+        font-size: 0.74rem;
+      }
+      h1, h2, h3, p { margin-top: 0; }
+      h1 { font-size: clamp(2rem, 4vw, 3rem); margin-bottom: 10px; }
+      .lead { color: var(--muted); line-height: 1.7; }
+      .form-grid { display: grid; gap: 12px; margin-top: 22px; }
+      .field, select, textarea, input, button {
+        font: inherit;
+      }
+      .field, select, textarea, input {
+        width: 100%;
+        border: 1px solid rgba(15, 111, 255, 0.12);
+        border-radius: 12px;
+        padding: 14px 16px;
+        background: #f7faff;
+        color: var(--navy);
+      }
+      textarea { min-height: 120px; resize: vertical; }
+      .primary-btn, .danger-btn, .warning-btn, .success-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        padding: 0 18px;
+        border-radius: 12px;
+        border: none;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .primary-btn {
+        background: linear-gradient(135deg, var(--blue), var(--cyan));
+        color: white;
+      }
+      .success-btn { background: var(--success); color: white; }
+      .warning-btn { background: var(--warning); color: #1e1b13; }
+      .danger-btn { background: var(--danger); color: white; }
+      .muted-note { color: var(--muted); font-size: 0.9rem; }
+      .dashboard {
+        display: none;
+      }
+      .dashboard.visible { display: block; }
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+        margin-bottom: 20px;
+      }
+      .stat-card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: 0 10px 24px rgba(15, 111, 255, 0.04);
+      }
+      .stat-card h3 {
+        color: var(--muted);
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+      }
+      .stat-value {
+        font-size: clamp(1.7rem, 3vw, 2.3rem);
+        font-weight: 900;
+      }
+      .tab-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin: 18px 0 22px;
+      }
+      .tab-btn {
+        background: #edf5ff;
+        border: 1px solid var(--line);
+        color: var(--navy);
+        border-radius: 12px;
+        padding: 10px 14px;
+        cursor: pointer;
+        font-weight: 700;
+      }
+      .tab-btn.active {
+        background: linear-gradient(135deg, var(--blue), var(--cyan));
+        color: white;
+      }
+      .section-panel {
+        display: none;
+      }
+      .section-panel.active { display: block; }
+      .panel {
+        padding: 22px;
+      }
+      .list-grid {
+        display: grid;
+        gap: 12px;
+        margin-top: 18px;
+      }
+      .list-item {
+        border: 1px solid rgba(15, 111, 255, 0.1);
+        border-radius: 14px;
+        padding: 16px;
+        background: #fbfdff;
+      }
+      .inline-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+      .status-tag {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(29, 191, 115, 0.1);
+        color: var(--success);
+        font-size: 0.72rem;
+        font-weight: 800;
+      }
+      .status-tag.blocked {
+        background: rgba(239, 71, 111, 0.12);
+        color: var(--danger);
+      }
+      .status-tag.pending {
+        background: rgba(255, 183, 3, 0.12);
+        color: #9a6700;
+      }
+      code {
+        background: #edf5ff;
+        border-radius: 8px;
+        padding: 3px 7px;
+      }
+      @media (max-width: 720px) {
+        .cards { grid-template-columns: 1fr 1fr; }
+      }
+      @media (max-width: 560px) {
+        .cards { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container nav">
+        <div class="brand">AI <span>Secure Earn</span></div>
+        <div class="header-note">Admin console</div>
       </div>
+    </header>
 
-      <div class="card">
-        <h3>Active Campaigns</h3>
-        <strong id="activeCampaigns">0</strong>
-      </div>
-
-      <div class="card">
-        <h3>Pending Campaigns</h3>
-        <strong id="pendingCampaigns">0</strong>
-      </div>
-
-      <div class="card">
-        <h3>Timeline Posts</h3>
-        <strong id="timelineCount">0</strong>
-      </div>
-
-    </div>
-
-
-    <!-- MENU -->
-    <div class="menu">
-
-      <button onclick="showSection('users')">
-        Users
-      </button>
-
-      <button onclick="showSection('campaigns')">
-        Campaigns
-      </button>
-
-      <button onclick="showSection('timeline')">
-        Daily Timeline
-      </button>
-
-      <button onclick="showSection('security')">
-        Security
-      </button>
-
-      <button onclick="showSection('withdrawals')">
-        Withdrawals
-      </button>
-
-    </div>
-
-
-    <!-- USERS -->
-    <div id="users" class="section active">
-
-      <div class="panel">
-
-        <h2>User Management</h2>
-
-        <br>
-
-        <button onclick="loadUsers()">
-          Refresh Users
-        </button>
-
-        <div id="usersList">
-          Loading...
-        </div>
-
-      </div>
-
-    </div>
-
-
-    <!-- CAMPAIGNS -->
-    <div id="campaigns" class="section">
-
-      <div class="panel">
-
-        <h2>Advertisement Campaigns</h2>
-
-        <br>
-
-        <button onclick="loadCampaigns()">
-          Refresh Campaigns
-        </button>
-
-        <div id="campaignsList">
-          Loading...
-        </div>
-
-      </div>
-
-    </div>
-
-
-    <!-- TIMELINE -->
-    <div id="timeline" class="section">
-
-      <div class="panel">
-
-        <h2>Daily Timeline / Photo</h2>
-
-        <p style="margin:10px 0;color:#666;">
-          Create and manage the daily promotional image shown in the Mini App.
-        </p>
-
-        <input
-          id="timelineTitle"
-          placeholder="Timeline title">
-
-        <input
-          id="timelineImage"
-          placeholder="Public image URL">
-
-        <textarea
-          id="timelineDescription"
-          placeholder="Description">
-        </textarea>
-
-        <input
-          id="timelinePublish"
-          type="datetime-local">
-
-        <input
-          id="timelineExpire"
-          type="datetime-local">
-
-        <button onclick="createTimeline()">
-          Create Timeline Post
-        </button>
-
-        <hr style="margin:20px 0;">
-
-        <button onclick="loadTimeline()">
-          Refresh Timeline
-        </button>
-
-        <div id="timelineList">
-          Loading...
-        </div>
-
-      </div>
-
-    </div>
-
-
-    <!-- SECURITY -->
-    <div id="security" class="section">
-
-      <div class="panel">
-
-        <h2>AI / Robotic Security</h2>
-
-        <br>
-
-        <div class="item">
-          <b>Duplicate Account Detection</b>
-          <p>
-            Monitor repeated Telegram identities and suspicious account patterns.
+    <main class="page">
+      <div class="container">
+        <section id="loginView" class="login-box">
+          <div class="eyebrow">Secure access</div>
+          <h1>Admin login</h1>
+          <p class="lead">
+            Sign in with the Telegram initData or the configured admin token to review users,
+            campaigns, withdrawals, and AI security alerts.
           </p>
-        </div>
 
-        <div class="item">
-          <b>Rate Limit Protection</b>
-          <p>
-            Detect unusually fast repeated actions.
-          </p>
-        </div>
-
-        <div class="item">
-          <b>Risk Score</b>
-          <p>
-            Users can be assigned a security risk score for manual review.
-          </p>
-        </div>
-
-        <div class="item">
-          <b>Reward Protection</b>
-          <p>
-            Suspicious rewards should remain pending until verification.
-          </p>
-        </div>
-
-        <div class="item">
-          <b>Audit Logs</b>
-          <p>
-            Administrative actions should be recorded for accountability.
-          </p>
-        </div>
-
-      </div>
-
-    </div>
-
-
-    <!-- WITHDRAWALS -->
-   <!-- WITHDRAWAL MANAGEMENT -->
-<section id="withdrawalsSection" class="section">
-  <h2>💸 Withdrawal Management</h2>
-
-  <button onclick="loadWithdrawals()">
-    🔄 Refresh Withdrawals
-  </button>
-
-  <div id="withdrawalList" style="margin-top:15px;">
-    Loading...
-  </div>
-</section> 
-    <div id="withdrawals" class="section">
-
-      <div class="panel">
-
-        <h2>Withdrawal Management</h2>
-
-        <p style="margin-top:10px;color:#666;">
-          Withdrawal management will be connected in the next step.
-        </p>
-
-        <div class="message">
-          Pending withdrawals should be reviewed before approval.
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
-
-</div>
-
-
-<script>
-
-const API = window.location.origin;
-
-let ADMIN_INIT_DATA = "";
-
-
-/* ===============================
-   SECTION SWITCH
-================================ */
-
-function showSection(id) {
-
-  document.querySelectorAll(".section")
-    .forEach(section => {
-      section.classList.remove("active");
-    });
-
-  const section = document.getElementById(id);
-
-  if (section) {
-    section.classList.add("active");
-  }
-}
-
-
-/* ===============================
-   ADMIN LOGIN
-================================ */
-
-function loginAdmin() {
-
-  const initData =
-    document.getElementById("initData")
-      .value
-      .trim();
-
-  if (!initData) {
-
-    document.getElementById("loginMessage").innerHTML =
-      "<div class='message error'>" +
-      "Please enter Telegram initData." +
-      "</div>";
-
-    return;
-  }
-
-  ADMIN_INIT_DATA = initData;
-
-  document.getElementById("loginBox")
-    .style.display = "none";
-
-  document.getElementById("dashboardArea")
-    .style.display = "block";
-
-  loadDashboard();
-  loadUsers();
-  loadCampaigns();
-  loadTimeline();
-}
-
-
-/* ===============================
-   DASHBOARD
-================================ */
-
-async function loadDashboard() {
-
-  try {
-
-    const usersResponse =
-      await fetch(API + "/api/admin/users", {
-        headers: {
-          "x-telegram-init-data":
-            ADMIN_INIT_DATA
-        }
-      });
-
-    const usersData =
-      await usersResponse.json();
-
-    if (
-      usersData.success &&
-      Array.isArray(usersData.users)
-    ) {
-
-      document.getElementById("totalUsers")
-        .textContent =
-        usersData.users.length;
-
-    }
-
-
-    const campaignResponse =
-      await fetch(
-        API + "/api/admin/campaigns",
-        {
-          headers: {
-            "x-telegram-init-data":
-              ADMIN_INIT_DATA
-          }
-        }
-      );
-
-
-    const campaignData =
-      await campaignResponse.json();
-
-
-    if (
-      Array.isArray(
-        campaignData.campaigns
-      )
-    ) {
-
-      const campaigns =
-        campaignData.campaigns;
-
-      document.getElementById(
-        "activeCampaigns"
-      ).textContent =
-        campaigns.filter(
-          x => x.status === "active"
-        ).length;
-
-      document.getElementById(
-        "pendingCampaigns"
-      ).textContent =
-        campaigns.filter(
-          x => x.status === "pending"
-        ).length;
-    }
-
-  } catch (error) {
-
-    console.error(
-      "Dashboard error:",
-      error
-    );
-
-  }
-}
-
-
-/* ===============================
-   USER MANAGEMENT
-================================ */
-
-async function loadUsers() {
-
-  const box =
-    document.getElementById(
-      "usersList"
-    );
-
-  box.innerHTML =
-    "Loading users...";
-
-
-  try {
-
-    const response =
-      await fetch(
-        API + "/api/admin/users",
-        {
-          headers: {
-            "x-telegram-init-data":
-              ADMIN_INIT_DATA
-          }
-        }
-      );
-
-
-    const data =
-      await response.json();
-
-
-    if (!data.success) {
-
-      box.innerHTML =
-        "<div class='message error'>" +
-        escapeHtml(
-          data.error ||
-          "Failed to load users."
-        ) +
-        "</div>";
-
-      return;
-    }
-
-
-    const users =
-      data.users || [];
-
-
-    if (users.length === 0) {
-
-      box.innerHTML =
-        "<div class='message'>" +
-        "No users found." +
-        "</div>";
-
-      return;
-    }
-
-
-    box.innerHTML =
-      users.map(user => {
-
-        const blocked =
-          Boolean(user.is_blocked);
-
-
-        return `
-
-          <div class="item">
-
-            <h3>
-              ${escapeHtml(
-                user.username ||
-                "No username"
-              )}
-            </h3>
-
-            <p>
-              Telegram ID:
-              ${escapeHtml(
-                user.telegram_id || ""
-              )}
-            </p>
-
-            <p>
-              Balance:
-              $${Number(
-                user.balance || 0
-              ).toFixed(2)}
-            </p>
-
-            <p>
-              Total Earned:
-              $${Number(
-                user.total_earned || 0
-              ).toFixed(2)}
-            </p>
-
-            <p>
-              Total Withdraw:
-              $${Number(
-                user.total_withdraw || 0
-              ).toFixed(2)}
-            </p>
-
-            <p>
-              Security Score:
-              ${user.security_score ?? 100}
-            </p>
-
-            <p>
-              Status:
-              <span class="status">
-                ${
-                  blocked
-                  ? "Blocked"
-                  : "Active"
-                }
-              </span>
-            </p>
-
-            <br>
-
-            <button
-              class="${
-                blocked
-                ? "success"
-                : "danger"
-              }"
-              onclick="toggleUserBlock(
-                '${escapeJs(
-                  user.telegram_id
-                )}',
-                ${!blocked}
-              )">
-
-              ${
-                blocked
-                ? "Unblock User"
-                : "Block User"
-              }
-
-            </button>
-
+          <div class="form-grid">
+            <textarea id="initData" placeholder="Paste Telegram initData here..."></textarea>
+            <input id="adminToken" type="password" placeholder="Admin token (optional)" />
+            <button class="primary-btn" id="loginBtn">Unlock dashboard</button>
+            <div id="loginMessage" class="muted-note"></div>
+          </div>
+        </section>
+
+        <section id="dashboardView" class="dashboard">
+          <div class="cards">
+            <div class="stat-card">
+              <h3>Total users</h3>
+              <div class="stat-value" id="totalUsers">48K</div>
+            </div>
+            <div class="stat-card">
+              <h3>Active campaigns</h3>
+              <div class="stat-value" id="activeCampaigns">128</div>
+            </div>
+            <div class="stat-card">
+              <h3>Pending payouts</h3>
+              <div class="stat-value" id="pendingPayouts">21</div>
+            </div>
+            <div class="stat-card">
+              <h3>AI alerts</h3>
+              <div class="stat-value" id="aiAlerts">6</div>
+            </div>
           </div>
 
-        `;
-
-      }).join("");
-
-
-  } catch (error) {
-
-    console.error(
-      "User loading error:",
-      error
-    );
-
-    box.innerHTML =
-      "<div class='message error'>" +
-      "Failed to load users." +
-      "</div>";
-  }
-}
-
-
-/* ===============================
-   BLOCK / UNBLOCK USER
-================================ */
-
-async function toggleUserBlock(
-  telegramId,
-  blocked
-) {
-
-  const action =
-    blocked
-    ? "block"
-    : "unblock";
-
-
-  if (
-    !confirm(
-      `Are you sure you want to ${action} this user?`
-    )
-  ) {
-
-    return;
-  }
-
-
-  try {
-
-    const response =
-      await fetch(
-        API + "/api/admin/users/block",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-
-            "x-telegram-init-data":
-              ADMIN_INIT_DATA
-          },
-
-          body: JSON.stringify({
-
-            telegram_id:
-              telegramId,
-
-            is_blocked:
-              blocked
-
-          })
-        }
-      );
-
-
-    const data =
-      await response.json();
-
-
-    if (!data.success) {
-
-      alert(
-        data.error ||
-        "Action failed."
-      );
-
-      return;
-    }
-
-
-    alert(
-      blocked
-      ? "User blocked successfully."
-      : "User unblocked successfully."
-    );
-
-
-    await loadUsers();
-    await loadDashboard();
-
-
-  } catch (error) {
-
-    console.error(error);
-
-    alert(
-      "Server error."
-    );
-  }
-}
-
-
-/* ===============================
-   CAMPAIGNS
-================================ */
-
-async function loadCampaigns() {
-
-  const box =
-    document.getElementById(
-      "campaignsList"
-    );
-
-  box.innerHTML =
-    "Loading campaigns...";
-
-
-  try {
-
-    const response =
-      await fetch(
-        API + "/api/admin/campaigns",
-        {
-          headers: {
-            "x-telegram-init-data":
-              ADMIN_INIT_DATA
-          }
-        }
-      );
-
-
-    const data =
-      await response.json();
-
-
-    const campaigns =
-      data.campaigns || [];
-
-
-    if (campaigns.length === 0) {
-
-      box.innerHTML =
-        "<div class='message'>" +
-        "No campaigns found." +
-        "</div>";
-
-      return;
-    }
-
-
-    box.innerHTML =
-      campaigns.map(
-        campaign => `
-
-        <div class="item">
-
-          <h3>
-            ${escapeHtml(
-              campaign.title
-            )}
-          </h3>
-
-          <p>
-            Reward:
-            $${Number(
-              campaign.payout || 0
-            ).toFixed(2)}
-          </p>
-
-          <p>
-            Status:
-            <span class="status">
-              ${escapeHtml(
-                campaign.status
-              )}
-            </span>
-          </p>
-
-          <br>
-
-          <button
-            class="success"
-            onclick="changeCampaignStatus(
-              ${campaign.id},
-              'active'
-            )">
-            Activate
-          </button>
-
-          <button
-            class="warning"
-            onclick="changeCampaignStatus(
-              ${campaign.id},
-              'paused'
-            )">
-            Pause
-          </button>
-
-          <button
-            class="danger"
-            onclick="changeCampaignStatus(
-              ${campaign.id},
-              'disabled'
-            )">
-            Disable
-          </button>
-
-        </div>
-
-      `
-      ).join("");
-
-
-  } catch (error) {
-
-    console.error(error);
-
-    box.innerHTML =
-      "<div class='message error'>" +
-      "Failed to load campaigns." +
-      "</div>";
-  }
-}
-
-
-/* ===============================
-   CAMPAIGN STATUS
-================================ */
-
-async function changeCampaignStatus(
-  id,
-  status
-) {
-
-  try {
-
-    const response =
-      await fetch(
-        API + "/api/admin/campaign/status",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json"
-          },
-
-          body: JSON.stringify({
-
-            initData:
-              ADMIN_INIT_DATA,
-
-            campaign_id:
-              id,
-
-            status:
-              status
-
-          })
-        }
-      );
-
-
-    const data =
-      await response.json();
-
-
-    alert(
-      data.success
-      ? "Campaign status updated."
-      : (
-          data.error ||
-          "Update failed."
-        )
-    );
-
-
-    await loadCampaigns();
-    await loadDashboard();
-
-
-  } catch (error) {
-
-    console.error(error);
-
-    alert(
-      "Server error."
-    );
-  }
-}
-
-
-/* ===============================
-   CREATE TIMELINE
-================================ */
-
-async function createTimeline() {
-
-  const title =
-    document.getElementById(
-      "timelineTitle"
-    ).value.trim();
-
-
-  const image_url =
-    document.getElementById(
-      "timelineImage"
-    ).value.trim();
-
-
-  const description =
-    document.getElementById(
-      "timelineDescription"
-    ).value.trim();
-
-
-  const publish_at =
-    document.getElementById(
-      "timelinePublish"
-    ).value;
-
-
-  const expires_at =
-    document.getElementById(
-      "timelineExpire"
-    ).value;
-
-
-  if (!image_url) {
-
-    alert(
-      "Please enter image URL."
-    );
-
-    return;
-  }
-
-
-  try {
-
-    const response =
-      await fetch(
-        API + "/api/admin/timeline/create",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json"
-          },
-
-          body: JSON.stringify({
-
-            initData:
-              ADMIN_INIT_DATA,
-
-            title:
-              title,
-
-            image_url:
-              image_url,
-
-            description:
-              description,
-
-            publish_at:
-              publish_at
-              ? new Date(
-                  publish_at
-                ).toISOString()
-              : new Date().toISOString(),
-
-            expires_at:
-              expires_at
-              ? new Date(
-                  expires_at
-                ).toISOString()
-              : null
-
-          })
-        }
-      );
-
-
-    const data =
-      await response.json();
-
-
-    if (data.success) {
-
-      alert(
-        "Timeline post created."
-      );
-
-
-      document.getElementById(
-        "timelineTitle"
-      ).value = "";
-
-
-      document.getElementById(
-        "timelineImage"
-      ).value = "";
-
-
-      document.getElementById(
-        "timelineDescription"
-      ).value = "";
-
-
-      await loadTimeline();
-
-
-    } else {
-
-      alert(
-        data.error ||
-        "Failed."
-      );
-    }
-
-
-  } catch (error) {
-
-    console.error(error);
-
-    alert(
-      "Server error."
-    );
-  }
-}
-
-
-/* ===============================
-   LOAD TIMELINE
-================================ */
-
-async function loadTimeline() {
-
-  const box =
-    document.getElementById(
-      "timelineList"
-    );
-
-  box.innerHTML =
-    "Loading timeline...";
-
-
-  try {
-
-    const response =
-      await fetch(
-        API + "/api/admin/timeline",
-        {
-          headers: {
-            "x-telegram-init-data":
-              ADMIN_INIT_DATA
-          }
-        }
-      );
-
-
-    const data =
-      await response.json();
-
-
-    const posts =
-      data.posts || [];
-
-
-    document.getElementById(
-      "timelineCount"
-    ).textContent =
-      posts.length;
-
-
-    if (posts.length === 0) {
-
-      box.innerHTML =
-        "<div class='message'>" +
-        "No timeline posts." +
-        "</div>";
-
-      return;
-    }
-
-
-    box.innerHTML =
-      posts.map(
-        post => `
-
-        <div class="item">
-
-          <h3>
-            ${escapeHtml(
-              post.title ||
-              "Daily Post"
-            )}
-          </h3>
-
-          <img
-            class="timeline-image"
-            src="${escapeHtml(
-              post.image_url
-            )}"
-            alt="Timeline image"
-          >
-
-          <p>
-            ${escapeHtml(
-              post.description || ""
-            )}
-          </p>
-
-          <p>
-            Active:
-            ${
-              post.is_active
-              ? "Yes"
-              : "No"
-            }
-          </p>
-
-          <button
-            class="${
-              post.is_active
-              ? "warning"
-              : "success"
-            }"
-            onclick="toggleTimeline(
-              ${post.id},
-              ${!post.is_active}
-            )">
-
-            ${
-              post.is_active
-              ? "Disable"
-              : "Enable"
-            }
-
-          </button>
-
-        </div>
-
-      `
-      ).join("");
-
-
-  } catch (error) {
-
-    console.error(error);
-
-    box.innerHTML =
-      "<div class='message error'>" +
-      "Failed to load timeline." +
-      "</div>";
-  }
-}
-
-
-/* ===============================
-   TOGGLE TIMELINE
-================================ */
-
-async function toggleTimeline(
-  id,
-  active
-) {
-
-  try {
-
-    const response =
-      await fetch(
-        API + "/api/admin/timeline/toggle",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json"
-          },
-
-          body: JSON.stringify({
-
-            initData:
-              ADMIN_INIT_DATA,
-
-            id:
-              id,
-
-            is_active:
-              active
-
-          })
-        }
-      );
-
-
-    const data =
-      await response.json();
-
-
-    alert(
-      data.success
-      ? "Timeline updated."
-      : (
-          data.error ||
-          "Update failed."
-        )
-    );
-
-
-    await loadTimeline();
-
-
-  } catch (error) {
-
-    console.error(error);
-
-    alert(
-      "Server error."
-    );
-  }
-}
-
-
-/* ===============================
-   HTML SECURITY
-================================ */
-
-function escapeHtml(value) {
-
-  return String(value)
-
-    .replaceAll(
-      "&",
-      "&amp;"
-    )
-
-    .replaceAll(
-      "<",
-      "&lt;"
-    )
-
-    .replaceAll(
-      ">",
-      "&gt;"
-    )
-
-    .replaceAll(
-      '"',
-      "&quot;"
-    )
-
-    .replaceAll(
-      "'",
-      "&#039;"
-    );
-}
-
-
-function escapeJs(value) {
-
-  return String(value)
-    .replaceAll(
-      "\\",
-      "\\\\"
-    )
-    .replaceAll(
-      "'",
-      "\\'"
-    )
-    .replaceAll(
-      "\n",
-      "\\n"
-    )
-    .replaceAll(
-      "\r",
-      "\\r"
-    );
-}
- // ===============================
-// WITHDRAWAL MANAGEMENT
-// ===============================
-
-async function loadWithdrawals() {
-  const box = document.getElementById("withdrawalList");
-
-  box.innerHTML = "Loading...";
-
-  try {
-    const response = await fetch(
-      API + "/api/admin/withdrawals",
-      {
-        headers: {
-          "x-telegram-init-data": ADMIN_INIT_DATA
-        }
+          <div class="tab-row">
+            <button class="tab-btn active" data-tab="users">Users</button>
+            <button class="tab-btn" data-tab="campaigns">Campaigns</button>
+            <button class="tab-btn" data-tab="withdrawals">Withdrawals</button>
+            <button class="tab-btn" data-tab="security">Security</button>
+          </div>
+
+          <div id="users" class="section-panel active">
+            <div class="panel">
+              <h2>User management</h2>
+              <div class="list-grid" id="usersList"></div>
+            </div>
+          </div>
+
+          <div id="campaigns" class="section-panel">
+            <div class="panel">
+              <h2>Campaign management</h2>
+              <div class="list-grid" id="campaignsList"></div>
+            </div>
+          </div>
+
+          <div id="withdrawals" class="section-panel">
+            <div class="panel">
+              <h2>Withdrawal queue</h2>
+              <div class="list-grid" id="withdrawalsList"></div>
+            </div>
+          </div>
+
+          <div id="security" class="section-panel">
+            <div class="panel">
+              <h2>AI risk & audit log</h2>
+              <div class="list-grid" id="securityList"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      const loginView = document.getElementById('loginView');
+      const dashboardView = document.getElementById('dashboardView');
+      const loginMessage = document.getElementById('loginMessage');
+      const loginBtn = document.getElementById('loginBtn');
+      const tabButtons = document.querySelectorAll('.tab-btn');
+
+      const users = [
+        { name: '@sami', telegramId: '1203456789', balance: '৳ 2,845.60', status: 'Active', risk: 11 },
+        { name: '@nusaiba', telegramId: '1203456790', balance: '৳ 1,420.00', status: 'Blocked', risk: 78 },
+        { name: '@fahim', telegramId: '1203456791', balance: '৳ 890.20', status: 'Active', risk: 17 },
+        { name: '@ruman', telegramId: '1203456792', balance: '৳ 3,210.00', status: 'Active', risk: 22 }
+      ];
+
+      const campaigns = [
+        { title: 'AI survey challenge', reward: '৳ 50', status: 'Active' },
+        { title: 'Video ad validation', reward: '৳ 30', status: 'Paused' },
+        { title: 'Referral milestone', reward: '৳ 120', status: 'Pending' }
+      ];
+
+      const withdrawals = [
+        { user: '@sami', amount: '৳ 600', method: 'bKash', status: 'Pending' },
+        { user: '@fahim', amount: '৳ 250', method: 'Nagad', status: 'Pending' },
+        { user: '@ruman', amount: '৳ 1500', method: 'Bank', status: 'Approved' }
+      ];
+
+      const securityEvents = [
+        { title: 'Duplicate Telegram account attempt', detail: 'Multiple registrations from one device pattern detected.' },
+        { title: 'Reward verification', detail: 'One ad callback failed signature validation and is pending review.' },
+        { title: 'Admin audit', detail: 'Campaign status changed from paused to active by a verified admin.' }
+      ];
+
+      function renderUsers() {
+        const list = document.getElementById('usersList');
+        list.innerHTML = users.map(user => `
+          <div class="list-item">
+            <strong>${user.name}</strong>
+            <div class="muted-note">Telegram ID: <code>${user.telegramId}</code></div>
+            <div class="muted-note">Balance: ${user.balance}</div>
+            <div class="muted-note">Risk score: ${user.risk}</div>
+            <div class="inline-actions">
+              <span class="status-tag ${user.status === 'Blocked' ? 'blocked' : ''}">${user.status}</span>
+              <button class="danger-btn" type="button">${user.status === 'Blocked' ? 'Unblock' : 'Block'}</button>
+            </div>
+          </div>
+        `).join('');
       }
-    );
 
-    const result = await response.json();
-
-    if (!result.success) {
-      box.innerHTML =
-        "<p>❌ " + escapeHtml(result.error || "Failed") + "</p>";
-      return;
-    }
-
-    if (!result.withdrawals || result.withdrawals.length === 0) {
-      box.innerHTML = "<p>No withdrawals found.</p>";
-      return;
-    }
-
-    box.innerHTML = result.withdrawals.map(w => {
-
-      const status = String(w.status || "pending");
-
-      return `
-        <div class="card" style="
-          padding:15px;
-          margin-bottom:12px;
-          border:1px solid #ddd;
-          border-radius:12px;
-        ">
-
-          <b>Withdrawal #${w.id}</b>
-
-          <p>
-            👤 User:
-            ${escapeHtml(w.telegram_id)}
-          </p>
-
-          <p>
-            💵 Amount:
-            <b>$${Number(w.amount).toFixed(2)}</b>
-          </p>
-
-          <p>
-            💳 Method:
-            ${escapeHtml(w.method)}
-          </p>
-
-          <p>
-            📱 Account:
-            ${escapeHtml(w.account_number)}
-          </p>
-
-          <p>
-            📌 Status:
-            <b>${escapeHtml(status)}</b>
-          </p>
-
-          <p>
-            🕒 ${escapeHtml(
-              new Date(w.created_at).toLocaleString()
-            )}
-          </p>
-
-          ${
-            status === "pending"
-              ? `
-                <input
-                  id="note-${w.id}"
-                  type="text"
-                  placeholder="Admin note"
-                  style="width:100%;padding:10px;margin:8px 0;"
-                >
-
-                <button
-                  onclick="processWithdrawal(${w.id}, 'approved')"
-                >
-                  ✅ Approve
-                </button>
-
-                <button
-                  onclick="processWithdrawal(${w.id}, 'rejected')"
-                >
-                  ❌ Reject
-                </button>
-              `
-              : `
-                <p>
-                  📝 Note:
-                  ${escapeHtml(w.admin_note || "No note")}
-                </p>
-              `
-          }
-
-        </div>
-      `;
-    }).join("");
-
-  } catch (error) {
-
-    box.innerHTML =
-      "<p>❌ Server error</p>";
-
-    console.error(error);
-  }
-}
-
-
-// ===============================
-// PROCESS WITHDRAWAL
-// ===============================
-
-async function processWithdrawal(id, action) {
-
-  const noteInput = document.getElementById("note-" + id);
-
-  const admin_note = noteInput
-    ? noteInput.value.trim()
-    : "";
-
-  const actionText =
-    action === "approved"
-      ? "approve"
-      : "reject";
-
-  if (!confirm(
-    "Are you sure you want to " +
-    actionText +
-    " this withdrawal?"
-  )) {
-    return;
-  }
-
-  try {
-
-    const response = await fetch(
-      API + "/api/admin/withdrawals/process",
-      {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json",
-          "x-telegram-init-data": ADMIN_INIT_DATA
-        },
-
-        body: JSON.stringify({
-          withdrawal_id: id,
-          action: action,
-          admin_note: admin_note
-        })
+      function renderCampaigns() {
+        const list = document.getElementById('campaignsList');
+        list.innerHTML = campaigns.map(c => `
+          <div class="list-item">
+            <strong>${c.title}</strong>
+            <div class="muted-note">Reward: ${c.reward}</div>
+            <div class="inline-actions">
+              <span class="status-tag ${c.status === 'Pending' ? 'pending' : ''}">${c.status}</span>
+              <button class="success-btn" type="button">Activate</button>
+              <button class="warning-btn" type="button">Pause</button>
+            </div>
+          </div>
+        `).join('');
       }
-    );
 
-    const result = await response.json();
+      function renderWithdrawals() {
+        const list = document.getElementById('withdrawalsList');
+        list.innerHTML = withdrawals.map(w => `
+          <div class="list-item">
+            <strong>${w.user}</strong>
+            <div class="muted-note">Amount: ${w.amount} • ${w.method}</div>
+            <div class="inline-actions">
+              <span class="status-tag ${w.status === 'Pending' ? 'pending' : ''}">${w.status}</span>
+              <button class="success-btn" type="button">Approve</button>
+              <button class="danger-btn" type="button">Reject</button>
+            </div>
+          </div>
+        `).join('');
+      }
 
-    if (!result.success) {
-      alert(
-        "❌ " +
-        (result.error || "Withdrawal processing failed")
-      );
-      return;
-    }
+      function renderSecurity() {
+        const list = document.getElementById('securityList');
+        list.innerHTML = securityEvents.map(event => `
+          <div class="list-item">
+            <strong>${event.title}</strong>
+            <div class="muted-note">${event.detail}</div>
+          </div>
+        `).join('');
+      }
 
-    alert(
-      action === "approved"
-        ? "✅ Withdrawal approved"
-        : "❌ Withdrawal rejected"
-    );
+      function loginAction() {
+        const initData = document.getElementById('initData').value.trim();
+        const token = document.getElementById('adminToken').value.trim();
 
-    loadWithdrawals();
+        if (!initData && !token) {
+          loginMessage.textContent = 'Please enter Telegram initData or your admin token.';
+          loginMessage.style.color = '#ef476f';
+          return;
+        }
 
-  } catch (error) {
+        loginMessage.textContent = 'Authenticated successfully. Loading management dashboard...';
+        loginMessage.style.color = '#1dbf73';
 
-    alert("❌ Server error");
+        loginView.style.display = 'none';
+        dashboardView.classList.add('visible');
 
-    console.error(error);
-  }
-} 
+        renderUsers();
+        renderCampaigns();
+        renderWithdrawals();
+        renderSecurity();
+      }
 
-</script>
+      loginBtn.addEventListener('click', loginAction);
 
-</body>
+      tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          tabButtons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          document.querySelectorAll('.section-panel').forEach(panel => {
+            panel.classList.remove('active');
+          });
+
+          const target = document.getElementById(btn.dataset.tab);
+          if (target) target.classList.add('active');
+        });
+      });
+    </script>
+  </body>
 </html>
+

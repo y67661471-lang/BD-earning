@@ -1,1 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BD Earning Admin</title>
+    <style>
+      :root {
+        --navy: #0b1020;
+        --blue: #0f6fff;
+        --cyan: #3dd9ff;
+        --white: #f6fbff;
+        --panel: #ffffff;
+        --muted: #5c6b82;
+        --line: rgba(15, 111, 255, 0.12);
+        --success: #1dbf73;
+        --warning: #ffb703;
+        --danger: #ef476f;
+        --bg: #eef5ff;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: linear-gradient(180deg, #f3f7ff 0%, #edf5ff 100%);
+        color: var(--navy);
+      }
+      a { color: inherit; text-decoration: none; }
+      .container {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+      .topbar {
+        background: rgba(11, 16, 32, 0.96);
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+      }
+      .nav {
+        min-height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .brand {
+        color: white;
+        font-weight: 900;
+        font-size: 1.5rem;
+      }
+      .brand span { color: var(--cyan); }
+      .header-note {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.9rem;
+      }
+
+      .page {
+        padding: 52px 0 80px;
+      }
+      .login-box, .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        box-shadow: 0 18px 45px rgba(14, 28, 52, 0.07);
+      }
+      .login-box {
+        max-width: 560px;
+        margin: 0 auto;
+        padding: 30px;
+      }
+      .eyebrow {
+        color: var(--blue);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 800;
+        font-size: 0.74rem;
+      }
+      h1, h2, h3, p { margin-top: 0; }
+      h1 { font-size: clamp(2rem, 4vw, 3rem); margin-bottom: 10px; }
+      .lead { color: var(--muted); line-height: 1.7; }
+      .form-grid { display: grid; gap: 12px; margin-top: 22px; }
+      .field, select, textarea, input, button {
+        font: inherit;
+      }
+      .field, select, textarea, input {
+        width: 100%;
+        border: 1px solid rgba(15, 111, 255, 0.12);
+        border-radius: 12px;
+        padding: 14px 16px;
+        background: #f7faff;
+        color: var(--navy);
+      }
+      textarea { min-height: 120px; resize: vertical; }
+      .primary-btn, .danger-btn, .warning-btn, .success-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        padding: 0 18px;
+        border-radius: 12px;
+        border: none;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .primary-btn {
+        background: linear-gradient(135deg, var(--blue), var(--cyan));
+        color: white;
+      }
+      .success-btn { background: var(--success); color: white; }
+      .warning-btn { background: var(--warning); color: #1e1b13; }
+      .danger-btn { background: var(--danger); color: white; }
+      .muted-note { color: var(--muted); font-size: 0.9rem; }
+      .dashboard {
+        display: none;
+      }
+      .dashboard.visible { display: block; }
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+        margin-bottom: 20px;
+      }
+      .stat-card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: 0 10px 24px rgba(15, 111, 255, 0.04);
+      }
+      .stat-card h3 {
+        color: var(--muted);
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+      }
+      .stat-value {
+        font-size: clamp(1.7rem, 3vw, 2.3rem);
+        font-weight: 900;
+      }
+      .tab-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin: 18px 0 22px;
+      }
+      .tab-btn {
+        background: #edf5ff;
+        border: 1px solid var(--line);
+        color: var(--navy);
+        border-radius: 12px;
+        padding: 10px 14px;
+        cursor: pointer;
+        font-weight: 700;
+      }
+      .tab-btn.active {
+        background: linear-gradient(135deg, var(--blue), var(--cyan));
+        color: white;
+      }
+      .section-panel {
+        display: none;
+      }
+      .section-panel.active { display: block; }
+      .panel {
+        padding: 22px;
+      }
+      .list-grid {
+        display: grid;
+        gap: 12px;
+        margin-top: 18px;
+      }
+      .list-item {
+        border: 1px solid rgba(15, 111, 255, 0.1);
+        border-radius: 14px;
+        padding: 16px;
+        background: #fbfdff;
+      }
+      .inline-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+      .status-tag {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(29, 191, 115, 0.1);
+        color: var(--success);
+        font-size: 0.72rem;
+        font-weight: 800;
+      }
+      .status-tag.blocked {
+        background: rgba(239, 71, 111, 0.12);
+        color: var(--danger);
+      }
+      .status-tag.pending {
+        background: rgba(255, 183, 3, 0.12);
+        color: #9a6700;
+      }
+      code {
+        background: #edf5ff;
+        border-radius: 8px;
+        padding: 3px 7px;
+      }
+      @media (max-width: 720px) {
+        .cards { grid-template-columns: 1fr 1fr; }
+      }
+      @media (max-width: 560px) {
+        .cards { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container nav">
+        <div class="brand">AI <span>Secure Earn</span></div>
+        <div class="header-note">Admin console</div>
+      </div>
+    </header>
+
+    <main class="page">
+      <div class="container">
+        <section id="loginView" class="login-box">
+          <div class="eyebrow">Secure access</div>
+          <h1>Admin login</h1>
+          <p class="lead">
+            Sign in with the Telegram initData or the configured admin token to review users,
+            campaigns, withdrawals, and AI security alerts.
+          </p>
+
+          <div class="form-grid">
+            <textarea id="initData" placeholder="Paste Telegram initData here..."></textarea>
+            <input id="adminToken" type="password" placeholder="Admin token (optional)" />
+            <button class="primary-btn" id="loginBtn">Unlock dashboard</button>
+            <div id="loginMessage" class="muted-note"></div>
+          </div>
+        </section>
+
+        <section id="dashboardView" class="dashboard">
+          <div class="cards">
+            <div class="stat-card">
+              <h3>Total users</h3>
+              <div class="stat-value" id="totalUsers">48K</div>
+            </div>
+            <div class="stat-card">
+              <h3>Active campaigns</h3>
+              <div class="stat-value" id="activeCampaigns">128</div>
+            </div>
+            <div class="stat-card">
+              <h3>Pending payouts</h3>
+              <div class="stat-value" id="pendingPayouts">21</div>
+            </div>
+            <div class="stat-card">
+              <h3>AI alerts</h3>
+              <div class="stat-value" id="aiAlerts">6</div>
+            </div>
+          </div>
+
+          <div class="tab-row">
+            <button class="tab-btn active" data-tab="users">Users</button>
+            <button class="tab-btn" data-tab="campaigns">Campaigns</button>
+            <button class="tab-btn" data-tab="withdrawals">Withdrawals</button>
+            <button class="tab-btn" data-tab="security">Security</button>
+          </div>
+
+          <div id="users" class="section-panel active">
+            <div class="panel">
+              <h2>User management</h2>
+              <div class="list-grid" id="usersList"></div>
+            </div>
+          </div>
+
+          <div id="campaigns" class="section-panel">
+            <div class="panel">
+              <h2>Campaign management</h2>
+              <div class="list-grid" id="campaignsList"></div>
+            </div>
+          </div>
+
+          <div id="withdrawals" class="section-panel">
+            <div class="panel">
+              <h2>Withdrawal queue</h2>
+              <div class="list-grid" id="withdrawalsList"></div>
+            </div>
+          </div>
+
+          <div id="security" class="section-panel">
+            <div class="panel">
+              <h2>AI risk & audit log</h2>
+              <div class="list-grid" id="securityList"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      const loginView = document.getElementById('loginView');
+      const dashboardView = document.getElementById('dashboardView');
+      const loginMessage = document.getElementById('loginMessage');
+      const loginBtn = document.getElementById('loginBtn');
+      const tabButtons = document.querySelectorAll('.tab-btn');
+
+      const users = [
+        { name: '@sami', telegramId: '1203456789', balance: '৳ 2,845.60', status: 'Active', risk: 11 },
+        { name: '@nusaiba', telegramId: '1203456790', balance: '৳ 1,420.00', status: 'Blocked', risk: 78 },
+        { name: '@fahim', telegramId: '1203456791', balance: '৳ 890.20', status: 'Active', risk: 17 },
+        { name: '@ruman', telegramId: '1203456792', balance: '৳ 3,210.00', status: 'Active', risk: 22 }
+      ];
+
+      const campaigns = [
+        { title: 'AI survey challenge', reward: '৳ 50', status: 'Active' },
+        { title: 'Video ad validation', reward: '৳ 30', status: 'Paused' },
+        { title: 'Referral milestone', reward: '৳ 120', status: 'Pending' }
+      ];
+
+      const withdrawals = [
+        { user: '@sami', amount: '৳ 600', method: 'bKash', status: 'Pending' },
+        { user: '@fahim', amount: '৳ 250', method: 'Nagad', status: 'Pending' },
+        { user: '@ruman', amount: '৳ 1500', method: 'Bank', status: 'Approved' }
+      ];
+
+      const securityEvents = [
+        { title: 'Duplicate Telegram account attempt', detail: 'Multiple registrations from one device pattern detected.' },
+        { title: 'Reward verification', detail: 'One ad callback failed signature validation and is pending review.' },
+        { title: 'Admin audit', detail: 'Campaign status changed from paused to active by a verified admin.' }
+      ];
+
+      function renderUsers() {
+        const list = document.getElementById('usersList');
+        list.innerHTML = users.map(user => `
+          <div class="list-item">
+            <strong>${user.name}</strong>
+            <div class="muted-note">Telegram ID: <code>${user.telegramId}</code></div>
+            <div class="muted-note">Balance: ${user.balance}</div>
+            <div class="muted-note">Risk score: ${user.risk}</div>
+            <div class="inline-actions">
+              <span class="status-tag ${user.status === 'Blocked' ? 'blocked' : ''}">${user.status}</span>
+              <button class="danger-btn" type="button">${user.status === 'Blocked' ? 'Unblock' : 'Block'}</button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      function renderCampaigns() {
+        const list = document.getElementById('campaignsList');
+        list.innerHTML = campaigns.map(c => `
+          <div class="list-item">
+            <strong>${c.title}</strong>
+            <div class="muted-note">Reward: ${c.reward}</div>
+            <div class="inline-actions">
+              <span class="status-tag ${c.status === 'Pending' ? 'pending' : ''}">${c.status}</span>
+              <button class="success-btn" type="button">Activate</button>
+              <button class="warning-btn" type="button">Pause</button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      function renderWithdrawals() {
+        const list = document.getElementById('withdrawalsList');
+        list.innerHTML = withdrawals.map(w => `
+          <div class="list-item">
+            <strong>${w.user}</strong>
+            <div class="muted-note">Amount: ${w.amount} • ${w.method}</div>
+            <div class="inline-actions">
+              <span class="status-tag ${w.status === 'Pending' ? 'pending' : ''}">${w.status}</span>
+              <button class="success-btn" type="button">Approve</button>
+              <button class="danger-btn" type="button">Reject</button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      function renderSecurity() {
+        const list = document.getElementById('securityList');
+        list.innerHTML = securityEvents.map(event => `
+          <div class="list-item">
+            <strong>${event.title}</strong>
+            <div class="muted-note">${event.detail}</div>
+          </div>
+        `).join('');
+      }
+
+      function loginAction() {
+        const initData = document.getElementById('initData').value.trim();
+        const token = document.getElementById('adminToken').value.trim();
+
+        if (!initData && !token) {
+          loginMessage.textContent = 'Please enter Telegram initData or your admin token.';
+          loginMessage.style.color = '#ef476f';
+          return;
+        }
+
+        loginMessage.textContent = 'Authenticated successfully. Loading management dashboard...';
+        loginMessage.style.color = '#1dbf73';
+
+        loginView.style.display = 'none';
+        dashboardView.classList.add('visible');
+
+        renderUsers();
+        renderCampaigns();
+        renderWithdrawals();
+        renderSecurity();
+      }
+
+      loginBtn.addEventListener('click', loginAction);
+
+      tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          tabButtons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          document.querySelectorAll('.section-panel').forEach(panel => {
+            panel.classList.remove('active');
+          });
+
+          const target = document.getElementById(btn.dataset.tab);
+          if (target) target.classList.add('active');
+        });
+      });
+    </script>
+  </body>
+</html>
 

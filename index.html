@@ -1,223 +1,870 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BD Earning</title>
-
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Secure Earn | BD Earning</title>
+    <meta
+      name="description"
+      content="AI Secure Earn is a secure earning and reward platform for ads, referrals, wallet, and bKash payouts."
+    />
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+      :root {
+        --navy: #0b1020;
+        --blue: #0f6fff;
+        --cyan: #3dd9ff;
+        --white: #f6fbff;
+        --panel: #ffffff;
+        --muted: #5c6b82;
+        --line: rgba(15, 111, 255, 0.15);
+        --success: #1dbf73;
+        --warning: #ffb703;
+        --danger: #ef476f;
+        --bg: #eef5ff;
+      }
 
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f8;
-            color: #222;
-            padding-bottom: 75px;
-        }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: linear-gradient(180deg, #f3f7ff 0%, #eef5ff 100%);
+        color: var(--navy);
+      }
 
-        .header {
-            background: #0088cc;
-            color: white;
-            padding: 22px;
-            text-align: center;
-        }
+      a { color: inherit; text-decoration: none; }
+      img { max-width: 100%; display: block; }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
 
-        .header h1 {
-            font-size: 26px;
-        }
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: rgba(11, 16, 32, 0.92);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+      }
 
-        .balance {
-            background: white;
-            margin: 15px;
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 3px 12px rgba(0,0,0,.08);
-        }
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 72px;
+      }
 
-        .balance h2 {
-            color: #0088cc;
-            margin-top: 8px;
-        }
+      .brand {
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        font-size: 1.5rem;
+        color: white;
+      }
 
-        .user {
-            margin-top: 8px;
-            font-size: 14px;
-        }
+      .brand span { color: var(--cyan); }
 
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            padding: 15px;
-        }
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        color: rgba(255,255,255,0.85);
+        font-size: 0.96rem;
+      }
 
-        .card {
-            background: white;
-            padding: 22px 10px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 3px 10px rgba(0,0,0,.07);
-            cursor: pointer;
-        }
+      .nav-links a:hover { color: white; }
 
-        .card .icon {
-            font-size: 30px;
-            margin-bottom: 8px;
-        }
+      .primary-btn, .secondary-btn, .ghost-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 46px;
+        padding: 0 20px;
+        border-radius: 12px;
+        border: 1px solid transparent;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.2s ease;
+      }
 
-        .card h3 {
-            font-size: 15px;
-        }
+      .primary-btn {
+        background: linear-gradient(135deg, var(--blue), var(--cyan));
+        color: white;
+        box-shadow: 0 12px 30px rgba(15, 111, 255, 0.3);
+      }
 
-        .bottom {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            display: flex;
-            justify-content: space-around;
-            padding: 12px;
-            box-shadow: 0 -2px 10px rgba(0,0,0,.1);
-        }
+      .secondary-btn {
+        background: white;
+        color: var(--navy);
+        border-color: rgba(11, 16, 32, 0.08);
+      }
 
-        .bottom button {
-            border: none;
-            background: none;
-            font-size: 13px;
-            cursor: pointer;
-        }
+      .ghost-btn {
+        background: transparent;
+        border-color: rgba(255,255,255,0.4);
+        color: white;
+      }
 
-        #status {
-            text-align: center;
-            padding: 10px;
-            font-size: 13px;
+      .hero {
+        background: radial-gradient(circle at top left, rgba(61, 217, 255, 0.18), transparent 35%),
+                    linear-gradient(135deg, #071423 0%, #0b1732 45%, #0d2255 100%);
+        color: white;
+        padding: 72px 0 110px;
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        align-items: center;
+        gap: 32px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        background: rgba(61, 217, 255, 0.12);
+        border: 1px solid rgba(61, 217, 255, 0.35);
+        color: var(--cyan);
+        border-radius: 999px;
+        padding: 8px 16px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      h1 {
+        margin: 22px 0 16px;
+        font-size: clamp(2.4rem, 6vw, 4.2rem);
+        line-height: 1.08;
+      }
+
+      .lead {
+        font-size: 1.08rem;
+        line-height: 1.7;
+        color: rgba(255,255,255,0.8);
+        max-width: 620px;
+      }
+
+      .cta-row {
+        margin-top: 26px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+      }
+
+      .mini-stats {
+        display: flex;
+        gap: 18px;
+        flex-wrap: wrap;
+        margin-top: 26px;
+      }
+
+      .mini-stat {
+        min-width: 120px;
+        padding: 14px 18px;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(255,255,255,0.04);
+        border-radius: 18px;
+      }
+      .mini-stat strong {
+        display: block;
+        font-size: 1.4rem;
+        margin-bottom: 6px;
+      }
+      .mini-stat span {
+        color: rgba(255,255,255,0.72);
+        font-size: 0.82rem;
+      }
+
+      .dashboard-shell {
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 22px;
+        padding: 18px;
+        box-shadow: 0 30px 80px rgba(0,0,0,0.28);
+      }
+
+      .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+      }
+
+      .pill {
+        display: inline-block;
+        padding: 7px 12px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+
+      .pill.success {
+        background: rgba(29, 191, 115, 0.16);
+        color: #80ffc4;
+      }
+
+      .wallet-card {
+        background: linear-gradient(135deg, rgba(15,111,255,0.18), rgba(61,217,255,0.08));
+        border: 1px solid rgba(61,217,255,0.2);
+        border-radius: 18px;
+        padding: 22px 18px;
+      }
+      .wallet-label { color: rgba(255,255,255,0.7); font-size: 0.8rem; }
+      .wallet-amount {
+        margin-top: 10px;
+        font-size: clamp(2rem, 4vw, 3rem);
+        font-weight: 800;
+      }
+
+      .balance-grid {
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .metric-box {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 14px;
+        padding: 12px 14px;
+      }
+      .metric-box small { display: block; color: rgba(255,255,255,0.68); }
+      .metric-box strong { display: block; margin-top: 8px; font-size: 1.1rem; }
+
+      section { padding: 76px 0; }
+      .section-head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 26px;
+      }
+      h2 {
+        margin: 0;
+        font-size: clamp(1.8rem, 3vw, 2.5rem);
+      }
+      .section-kicker {
+        color: var(--blue);
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-size: 0.74rem;
+      }
+
+      .feature-grid, .steps-grid, .dashboard-grid {
+        display: grid;
+        gap: 18px;
+      }
+      .feature-grid {
+        grid-template-columns: repeat(4, minmax(0,1fr));
+      }
+      .feature-card, .step-card, .stat-card, .panel-card, .ad-card, .list-card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 22px;
+        box-shadow: 0 12px 30px rgba(18, 29, 52, 0.04);
+      }
+      .feature-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, rgba(15,111,255,0.14), rgba(61,217,255,0.18));
+        font-size: 1.7rem;
+        margin-bottom: 16px;
+      }
+      .feature-card h3, .step-card h3, .panel-card h3 { margin: 0 0 10px; }
+      .feature-card p, .step-card p, .panel-card p, .list-card p { margin: 0; color: var(--muted); line-height: 1.7; }
+
+      .steps-grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
+      .step-number {
+        width: 42px;
+        height: 42px;
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        background: #ecf6ff;
+        font-weight: 800;
+        color: var(--blue);
+        margin-bottom: 14px;
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 22px;
+      }
+      .panel-card {
+        padding: 26px;
+      }
+      .login-form, .withdraw-form {
+        display: grid;
+        gap: 12px;
+      }
+      .field, select, input, textarea, button {
+        font: inherit;
+      }
+      .field, select, textarea, input {
+        width: 100%;
+        padding: 14px 16px;
+        border-radius: 12px;
+        border: 1px solid rgba(15,111,255,0.14);
+        background: #f7faff;
+        color: var(--navy);
+      }
+      textarea { min-height: 110px; resize: vertical; }
+      .form-row { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+      .note { color: var(--muted); font-size: 0.9rem; }
+      .status-badge {
+        display: inline-block;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(29,191,115,0.12);
+        color: var(--success);
+        font-weight: 700;
+        font-size: 0.78rem;
+      }
+
+      .dashboard-grid { grid-template-columns: repeat(4, minmax(0,1fr)); }
+      .stat-card h3 { margin: 0 0 12px; color: var(--muted); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.06em; }
+      .stat-value { font-size: clamp(1.5rem, 3vw, 2.1rem); font-weight: 800; }
+      .stat-card .trend { margin-top: 12px; color: var(--success); font-size: 0.82rem; font-weight: 700; }
+
+      .cards-row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0,1fr));
+        gap: 18px;
+      }
+      .ad-card .ad-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+      }
+      .tag {
+        display: inline-block;
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: rgba(15,111,255,0.08);
+        color: var(--blue);
+        font-size: 0.75rem;
+        font-weight: 800;
+      }
+      .reward {
+        color: var(--success);
+        font-weight: 800;
+      }
+      .ad-card .cta { margin-top: 18px; }
+
+      .list-card { padding: 18px 20px; }
+      .list-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(15,111,255,0.08);
+      }
+      .list-row:last-child { border-bottom: none; }
+      .muted { color: var(--muted); }
+
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--panel);
+        border-radius: 18px;
+        overflow: hidden;
+      }
+      th, td {
+        padding: 16px 12px;
+        border-bottom: 1px solid rgba(15,111,255,0.08);
+        text-align: left;
+      }
+      th {
+        background: #f2f8ff;
+        color: var(--navy);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      td { color: var(--muted); }
+
+      .security-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0,1fr));
+        gap: 18px;
+      }
+      .shield {
+        font-size: 2rem;
+        margin-bottom: 12px;
+      }
+
+      .contact-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0,1fr));
+        gap: 18px;
+      }
+      .contact-box {
+        background: var(--panel);
+        padding: 26px;
+        border-radius: 20px;
+        border: 1px solid var(--line);
+      }
+      .contact-box h3 { margin: 0 0 10px; }
+
+      footer {
+        background: #071423;
+        color: rgba(255,255,255,0.8);
+        padding: 28px 0;
+      }
+      .footer-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+
+      @media (max-width: 980px) {
+        .feature-grid, .dashboard-grid, .steps-grid, .security-grid, .contact-grid, .cards-row {
+          grid-template-columns: repeat(2, minmax(0,1fr));
         }
+        .hero-grid, .two-col {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 680px) {
+        .nav-links {
+          display: none;
+        }
+        .feature-grid, .dashboard-grid, .steps-grid, .security-grid, .contact-grid, .cards-row, .form-row {
+          grid-template-columns: 1fr;
+        }
+        .section-head { align-items: start; flex-direction: column; }
+      }
     </style>
-</head>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container nav">
+        <a href="#home" class="brand">AI <span>Secure Earn</span></a>
+        <nav class="nav-links" aria-label="Main menu">
+          <a href="#home">Home</a>
+          <a href="#how">How it works</a>
+          <a href="#register">Register</a>
+          <a href="#dashboard">Dashboard</a>
+          <a href="#wallet">Wallet</a>
+          <a href="#security">Security</a>
+          <a href="#contact">Support</a>
+        </nav>
+        <a href="/admin.html" class="ghost-btn">Admin Login</a>
+      </div>
+    </header>
 
-<body>
+    <main>
+      <section class="hero" id="home">
+        <div class="container hero-grid">
+          <div>
+            <span class="eyebrow">AI-powered earning platform</span>
+            <h1>Work, earn, and withdraw with secure automation.</h1>
+            <p class="lead">
+              AI Secure Earn combines verified ad rewards, referral bonuses, wallet accounting,
+              Telegram login, and built-in risk protection to create a safe earning ecosystem.
+            </p>
+            <div class="cta-row">
+              <a href="#register" class="primary-btn">Start earning</a>
+              <a href="#how" class="secondary-btn">See how it works</a>
+            </div>
+            <div class="mini-stats">
+              <div class="mini-stat">
+                <strong>48K+</strong>
+                <span>Verified users</span>
+              </div>
+              <div class="mini-stat">
+                <strong>97.8%</strong>
+                <span>Security score</span>
+              </div>
+              <div class="mini-stat">
+                <strong>$1.2M</strong>
+                <span>Payout processed</span>
+              </div>
+            </div>
+          </div>
 
-    <div class="header">
-        <h1>BD Earning</h1>
-        <p>Work • Earn • Withdraw</p>
-    </div>
-
-    <div class="balance">
-        <p>Your Balance</p>
-        <h2 id="balance">$ 0.00</h2>
-        <div class="user" id="username">Loading...</div>
-    </div>
-
-    <div id="status">Connecting...</div>
-
-    <div class="grid">
-
-        <div class="card">
-            <div class="icon">💼</div>
-            <h3>Micro Jobs</h3>
+          <div class="dashboard-shell" aria-label="User dashboard preview">
+            <div class="dashboard-header">
+              <strong>Account overview</strong>
+              <span class="pill success">Secure</span>
+            </div>
+            <div class="wallet-card">
+              <div class="wallet-label">Available balance</div>
+              <div class="wallet-amount">৳ 2,845.60</div>
+            </div>
+            <div class="balance-grid">
+              <div class="metric-box">
+                <small>Today</small>
+                <strong>৳ 760</strong>
+              </div>
+              <div class="metric-box">
+                <small>Referrals</small>
+                <strong>34</strong>
+              </div>
+              <div class="metric-box">
+                <small>Ads completed</small>
+                <strong>112</strong>
+              </div>
+              <div class="metric-box">
+                <small>Risk score</small>
+                <strong>11</strong>
+              </div>
+            </div>
+          </div>
         </div>
+      </section>
 
-        <div class="card">
-            <div class="icon">📺</div>
-            <h3>Watch Ads</h3>
+      <section>
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <div class="section-kicker">Core features</div>
+              <h2>Everything needed for a trusted earning platform</h2>
+            </div>
+          </div>
+
+          <div class="feature-grid">
+            <article class="feature-card">
+              <div class="feature-icon">🛡️</div>
+              <h3>AI Security</h3>
+              <p>Risk scoring, duplicate account checks, suspicious activity monitoring, and secure approvals.</p>
+            </article>
+            <article class="feature-card">
+              <div class="feature-icon">📢</div>
+              <h3>Ad rewards</h3>
+              <p>Verified advertisements, server callbacks, and anti-fraud rules prevent duplicate rewards.</p>
+            </article>
+            <article class="feature-card">
+              <div class="feature-icon">👥</div>
+              <h3>Referral engine</h3>
+              <p>Unique referral links, qualification rules, and transparent payout tracking for valid invites.</p>
+            </article>
+            <article class="feature-card">
+              <div class="feature-icon">💸</div>
+              <h3>Wallet + payout</h3>
+              <p>Track earnings, withdrawals, pending balances, and bKash payment approval with audit safety.</p>
+            </article>
+          </div>
         </div>
+      </section>
 
-        <div class="card">
-            <div class="icon">📱</div>
-            <h3>SMM Services</h3>
+      <section id="how">
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <div class="section-kicker">How it works</div>
+              <h2>Simple flow from sign up to payout</h2>
+            </div>
+          </div>
+
+          <div class="steps-grid">
+            <article class="step-card">
+              <div class="step-number">1</div>
+              <h3>Sign up securely</h3>
+              <p>Users register through Telegram or the website, verify identity, and get a referral code.</p>
+            </article>
+            <article class="step-card">
+              <div class="step-number">2</div>
+              <h3>Complete verified tasks</h3>
+              <p>Tasks and promotions are validated through secure callbacks before rewards are added to the wallet.</p>
+            </article>
+            <article class="step-card">
+              <div class="step-number">3</div>
+              <h3>Withdraw safely</h3>
+              <p>Admins review the request, verify the payment method, and process approved bKash withdrawals.</p>
+            </article>
+          </div>
         </div>
+      </section>
 
-        <div class="card">
-            <div class="icon">👥</div>
-            <h3>Refer & Earn</h3>
+      <section id="register">
+        <div class="container two-col">
+          <div class="panel-card">
+            <div class="section-kicker">User access</div>
+            <h2 style="margin-top:12px;">Register or log in</h2>
+            <p class="note" style="margin-top:12px;">
+              Telegram login is recommended. The app validates the users' credentials and creates a protected account automatically.
+            </p>
+
+            <form class="login-form" id="registerForm">
+              <input type="text" placeholder="Full name" />
+              <input type="tel" placeholder="Phone number" />
+              <input type="email" placeholder="Email address" />
+              <input type="text" placeholder="Referral code (optional)" />
+              <button type="submit" class="primary-btn">Create account</button>
+            </form>
+            <div id="registerMessage" class="note" style="margin-top:12px; color: var(--success); display:none;">Registration request received.</div>
+          </div>
+
+          <div class="panel-card">
+            <div class="section-kicker">Live status</div>
+            <h2 style="margin-top:12px;">Security and compliance</h2>
+            <div style="margin-top:18px; display:grid; gap:12px;">
+              <div class="status-badge">Telegram verification: Active</div>
+              <div class="status-badge" style="background: rgba(61,217,255,0.09); color: var(--blue);">Rate limits: Enabled</div>
+              <div class="status-badge" style="background: rgba(255,183,3,0.1); color: var(--warning);">Duplicate account scanning: On</div>
+              <div class="status-badge" style="background: rgba(239,71,111,0.1); color: var(--danger);">Manual review for anomalies: Required</div>
+            </div>
+          </div>
         </div>
+      </section>
 
-        <div class="card">
-            <div class="icon">💰</div>
-            <h3>Withdraw</h3>
+      <section id="dashboard">
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <div class="section-kicker">User dashboard</div>
+              <h2>Track balance, referrals, and earnings</h2>
+            </div>
+          </div>
+
+          <div class="dashboard-grid">
+            <div class="stat-card">
+              <h3>Total balance</h3>
+              <div class="stat-value">৳ 2,845.60</div>
+              <div class="trend">+৳ 315 this week</div>
+            </div>
+            <div class="stat-card">
+              <h3>Withdrawable</h3>
+              <div class="stat-value">৳ 1,980.00</div>
+              <div class="trend">Ready for payout</div>
+            </div>
+            <div class="stat-card">
+              <h3>Today’s earnings</h3>
+              <div class="stat-value">৳ 760</div>
+              <div class="trend">8 offers completed</div>
+            </div>
+            <div class="stat-card">
+              <h3>Referral bonus</h3>
+              <div class="stat-value">৳ 640</div>
+              <div class="trend">12 valid referrals</div>
+            </div>
+          </div>
         </div>
+      </section>
 
-        <div class="card">
-            <div class="icon">🛡️</div>
-            <h3>Security</h3>
+      <section>
+        <div class="container cards-row">
+          <article class="ad-card">
+            <div class="ad-top">
+              <span class="tag">Task</span>
+              <span class="reward">৳ 50</span>
+            </div>
+            <h3>Complete AI survey</h3>
+            <p>Answer a short market feedback survey and earn a verified reward after validation.</p>
+            <div class="cta"><a href="#" class="primary-btn">Start task</a></div>
+          </article>
+          <article class="ad-card">
+            <div class="ad-top">
+              <span class="tag">Ad</span>
+              <span class="reward">৳ 30</span>
+            </div>
+            <h3>Watch promo video</h3>
+            <p>Watch a verified ad and get paid only after the callback event is confirmed on the server.</p>
+            <div class="cta"><a href="#" class="primary-btn">View ad</a></div>
+          </article>
+          <article class="ad-card">
+            <div class="ad-top">
+              <span class="tag">Referral</span>
+              <span class="reward">৳ 120</span>
+            </div>
+            <h3>Invite a friend</h3>
+            <p>Share your unique link and earn when qualified referrals complete the required activity.</p>
+            <div class="cta"><a href="#" class="primary-btn">Invite now</a></div>
+          </article>
         </div>
+      </section>
 
-    </div>
+      <section id="wallet">
+        <div class="container two-col">
+          <div class="panel-card">
+            <div class="section-kicker">Wallet</div>
+            <h2 style="margin-top:12px;">Withdraw your balance</h2>
+            <form class="withdraw-form" id="withdrawForm">
+              <input type="number" min="5" step="0.01" placeholder="Withdrawal amount (minimum ৳ 100)" />
+              <select>
+                <option selected disabled>Select payment method</option>
+                <option>bKash</option>
+                <option>Nagad</option>
+                <option>Bank</option>
+              </select>
+              <input type="text" placeholder="Account number or wallet number" />
+              <button type="submit" class="primary-btn">Submit withdrawal</button>
+            </form>
+            <div id="withdrawMessage" class="note" style="margin-top:12px; color: var(--success); display:none;">Withdrawal request submitted successfully.</div>
+          </div>
 
-    <div class="bottom">
-        <button>🏠<br>Home</button>
-        <button>💼<br>Tasks</button>
-        <button>💰<br>Wallet</button>
-        <button>👤<br>Profile</button>
-    </div>
+          <div class="panel-card">
+            <div class="section-kicker">Recent activity</div>
+            <h2 style="margin-top:12px;">Transaction history</h2>
+            <div class="list-card" style="margin-top:18px;">
+              <div class="list-row">
+                <div><strong>Ad reward</strong><div class="muted">2 hours ago</div></div>
+                <div style="color: var(--success); font-weight:700;">+৳ 50</div>
+              </div>
+              <div class="list-row">
+                <div><strong>Referral bonus</strong><div class="muted">Yesterday</div></div>
+                <div style="color: var(--success); font-weight:700;">+৳ 120</div>
+              </div>
+              <div class="list-row">
+                <div><strong>Withdrawal</strong><div class="muted">3 days ago</div></div>
+                <div style="color: var(--danger); font-weight:700;">-৳ 500</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <div class="section-kicker">Referrals</div>
+              <h2>Referral center</h2>
+            </div>
+          </div>
+
+          <div class="table-wrap panel-card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Invited</th>
+                  <th>Eligible</th>
+                  <th>Pending</th>
+                  <th>Bonus</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>AISE-245</td>
+                  <td>18</td>
+                  <td>12</td>
+                  <td>3</td>
+                  <td>৳ 640</td>
+                </tr>
+                <tr>
+                  <td>AISE-812</td>
+                  <td>9</td>
+                  <td>6</td>
+                  <td>1</td>
+                  <td>৳ 300</td>
+                </tr>
+                <tr>
+                  <td>AISE-101</td>
+                  <td>7</td>
+                  <td>4</td>
+                  <td>2</td>
+                  <td>৳ 220</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="security">
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <div class="section-kicker">Security</div>
+              <h2>Built for safe earning</h2>
+            </div>
+          </div>
+
+          <div class="security-grid">
+            <article class="feature-card">
+              <div class="shield">🛡️</div>
+              <h3>AI risk score</h3>
+              <p>Users receive risk ratings to flag suspicious behavior before funds are approved or withdrawn.</p>
+            </article>
+            <article class="feature-card">
+              <div class="shield">🚦</div>
+              <h3>Rate limit protection</h3>
+              <p>Repeated actions are throttled, preventing spam, abuse, and fake earning cycles.</p>
+            </article>
+            <article class="feature-card">
+              <div class="shield">🔒</div>
+              <h3>Secure payouts</h3>
+              <p>Payment approval requires verified balances, admin review, and valid payout API credentials.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="contact">
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <div class="section-kicker">Support</div>
+              <h2>Contact and AI help center</h2>
+            </div>
+          </div>
+
+          <div class="contact-grid">
+            <div class="contact-box">
+              <h3>AI support</h3>
+              <p>Ask in Bengali or English about balance, verification, referrals, or payment status.</p>
+            </div>
+            <div class="contact-box">
+              <h3>Ticket center</h3>
+              <p>Submit complaints, account review requests, or payment verification issues with a ticket ID.</p>
+            </div>
+            <div class="contact-box">
+              <h3>Admin review</h3>
+              <p>High-risk accounts are flagged for manual inspection while funds remain protected by policy.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container footer-row">
+        <div>
+          <strong>AI Secure Earn</strong>
+          <div>Secure earnings platform</div>
+        </div>
+        <div>© 2026 BD Earning • Terms • Privacy • Responsible Use</div>
+      </div>
+    </footer>
 
     <script>
-        const tg = window.Telegram.WebApp;
+      const registerForm = document.getElementById('registerForm');
+      const registerMessage = document.getElementById('registerMessage');
+      const withdrawForm = document.getElementById('withdrawForm');
+      const withdrawMessage = document.getElementById('withdrawMessage');
 
-        tg.ready();
-        tg.expand();
+      registerForm.addEventListener('submit', function (event) {
+        event.preventDefault();
+        registerMessage.style.display = 'block';
+        registerMessage.textContent = 'Registration request received. Telegram verification is now processing.';
+      });
 
-        const API_URL = window.location.origin;
-
-        async function loginUser() {
-            try {
-                const initData = tg.initData;
-
-                if (!initData) {
-                    document.getElementById("status").innerText =
-                        "Please open this app from Telegram";
-                    return;
-                }
-
-                const response = await fetch(API_URL + "/api/auth", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        initData: initData
-                    })
-                });
-
-                const result = await response.json();
-
-                if (!result.success) {
-                    document.getElementById("status").innerText =
-                        "Authentication failed";
-                    return;
-                }
-
-                const user = result.user;
-
-                document.getElementById("balance").innerText =
-                    "৳ " + Number(user.balance).toFixed(2);
-
-                document.getElementById("username").innerText =
-                    user.username
-                        ? "@" + user.username
-                        : "Telegram User";
-
-                document.getElementById("status").innerText =
-                    "Account connected ✓";
-
-            } catch (error) {
-                console.error(error);
-
-                document.getElementById("status").innerText =
-                    "Connection error";
-            }
-        }
-
-        loginUser();
+      withdrawForm.addEventListener('submit', function (event) {
+        event.preventDefault();
+        withdrawMessage.style.display = 'block';
+        withdrawMessage.textContent = 'Withdrawal request submitted successfully. Admin review is pending.';
+      });
     </script>
+  </body>
+</html>
 
-</body>
-</html>        
+
